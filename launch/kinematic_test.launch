@@ -1,11 +1,32 @@
 <launch>
+  <arg name="pose_x" default="0.355882" />
+  <arg name="pose_y" default="-0.26" />
+  <arg name="pose_z" default="0.317" />
+
+  <arg name="joint_v1" default="-2.9" />
+  <arg name="joint_v2" default="-2.9" />
+  <arg name="joint_v3" default="-2.6" />
+  <arg name="joint_v4" default="-2.9" />
+  <arg name="joint_v5" default="-2.9" />
+  <arg name="joint_v6" default="-2.9" />
+ 
  
   <node name="kinematic_test"
-        pkg="moveit_tutorials"
+        pkg="planning_test"
         type="kinematic_test"
         respawn="false" output="screen">
     <rosparam command="load"
               file="$(find lwa4p_movit_config)/config/kinematics.yaml"/>
+    <param name="pose_x" value="$(arg pose_x)"/>
+    <param name="pose_y" value="$(arg pose_y)"/>
+    <param name="pose_z" value="$(arg pose_z)"/>
+    <param name="joint_v1" value="$(arg joint_v1)"/>
+    <param name="joint_v2" value="$(arg joint_v2)"/>
+    <param name="joint_v3" value="$(arg joint_v3)"/>
+    <param name="joint_v4" value="$(arg joint_v4)"/>
+    <param name="joint_v6" value="$(arg joint_v5)"/>
+    <param name="joint_v6" value="$(arg joint_v6)"/>
+   
   </node>
 
 </launch>

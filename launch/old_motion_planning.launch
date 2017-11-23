@@ -29,7 +29,7 @@
     <arg name="config" value="true"/>
   </include>
 
-  <node name="motion_planning_api_tutorial" pkg="moveit_tutorials" type="motion_planning_api_tutorial" respawn="false" launch-prefix="$(arg launch_prefix)" output="screen">
+  <node name="motion_planning_api_tutorial" pkg="planning_test" type="motion_planning_api_tutorial" respawn="false" launch-prefix="$(arg launch_prefix)" output="screen">
     <rosparam command="load" file="$(find lwa4p_movit_config)/config/kinematics.yaml"/>
     <param name="/planning_plugin" value="ompl_interface/OMPLPlanner"/>
     <rosparam command="load" file="$(find lwa4p_movit_config)/config/ompl_planning.yaml"/>

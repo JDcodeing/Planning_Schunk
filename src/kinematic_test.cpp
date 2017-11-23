@@ -20,16 +20,32 @@
 
 int main(int argc, char **argv)
 {
+ 
+
   ros::init(argc, argv, "kinematics_test");
   ros::AsyncSpinner spinner(1);
   spinner.start();
-  ros::NodeHandle node_handle;
+  ros::NodeHandle node_handle("~");
   //set up
   robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
   robot_model::RobotModelPtr kinematic_model = robot_model_loader.getModel();
   ROS_INFO("Model frame: %s", kinematic_model->getModelFrame().c_str());
-  ros::ServiceClient ik_service_= node_handle.serviceClient<moveit_msgs::GetPositionIK>("compute_ik");
+  ros::ServiceClient ik_service_= node_handle.serviceClient<moveit_msgs::GetPositionIK>("/compute_ik");
 
+ double x,y,z,v1,v2,v3,v4,v5,v6;
+ node_handle.getParam("pose_x", x);
+ node_handle.getParam("pose_y", y);
+ node_handle.getParam("pose_z", z);
+
+node_handle.getParam("joint_v1", v1);
+ node_handle.getParam("joint_v2", v2);
+ node_handle.getParam("joint_v3", v3);
+ node_handle.getParam("joint_v4", v4);
+ node_handle.getParam("joint_v5", v5);
+
+ node_handle.getParam("joint_v6", v6);
+std::cout <<"******************!!!!!!!!!!!!!!!!8*******************"<<std::endl;
+std::cout<< x <<" "<< y  <<" "<< z << std::endl;
 
   //ros::WallDuration sleep_time(20.0);
   //sleep_time.sleep();
@@ -48,13 +64,14 @@ int main(int argc, char **argv)
   const robot_state::JointModelGroup* joint_model_group = robot_state.getJointModelGroup("manipulator");
   
   const std::vector<std::string> &joint_names = joint_model_group->getVariableNames();
+  std::cout<<"^&^&^&^&^&^&^&^&^&^&^&^&joint_names " << joint_names.size()<<std::endl;
   std::vector<double> joint_values(6, 0.0);
-  joint_values[0] = -0.25;
-  joint_values[1] = -0.94;
-  joint_values[2] = 1.3;
-  joint_values[3] = 0;
-  joint_values[4] = 0.7;
-  joint_values[5] = 0; 
+  joint_values[0] = v1;
+  joint_values[1] = v2;
+  joint_values[2] = v3;
+  joint_values[3] = v4;
+  joint_values[4] = v5;
+  joint_values[5] = v6; 
 
   std::vector<double> new_joint_values(6, 0.0);
   robot_state.setJointGroupPositions(joint_model_group, joint_values);
@@ -66,7 +83,7 @@ int main(int argc, char **argv)
 
   Eigen::Affine3d pose= Eigen::Affine3d::Identity();
   
-  pose.translation() = Eigen::Vector3d(0.3558,0.-0.26083,0.31703);
+  pose.translation() = Eigen::Vector3d(x,y,z);
 
   geometry_msgs::Pose end_effector_pose = dr::toRosPose(dr::affineToIsometry(pose));
   end_effector_pose.orientation.x = -0.198;
@@ -92,8 +109,8 @@ int main(int argc, char **argv)
   pose_s.pose = end_effector_pose;
 
   ik_req.ik_request.pose_stamped = pose_s;
-  ik_req.ik_request.timeout = ros::Duration(0.5);
-  ik_req.ik_request.attempts = 5;
+ // ik_req.ik_request.timeout = ros::Duration(0.5);
+  //ik_req.ik_request.attempts = 5;
 
 
   moveit_msgs::GetPositionIK::Response ik_res;

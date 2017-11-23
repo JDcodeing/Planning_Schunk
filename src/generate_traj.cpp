@@ -224,7 +224,7 @@ void addobstacles(ros::NodeHandle& nh)
   //robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
     //robot_model::RobotModelPtr kinematic_model = robot_model_loader.getModel();
     ros::Publisher pub_co = nh.advertise<moveit_msgs::CollisionObject>("collision_object", 1);
-    moveit_msgs::CollisionObject co,co2,co3;
+    moveit_msgs::CollisionObject co,co2,co3,point;
     co.header.stamp = ros::Time::now();
     co.header.frame_id = "world";
     co.id = "obs1";
@@ -239,6 +239,11 @@ void addobstacles(ros::NodeHandle& nh)
     co3.header.frame_id = "world";
     co3.id = "obs3";
     co3.operation = moveit_msgs::CollisionObject::ADD;
+
+    point.header.stamp = ros::Time::now();
+    point.header.frame_id = "world";
+    point.id = "point";
+    point.operation = moveit_msgs::CollisionObject::ADD;
 
     shape_msgs::SolidPrimitive sphere;
     sphere.type = shape_msgs::SolidPrimitive::SPHERE;
@@ -257,6 +262,12 @@ void addobstacles(ros::NodeHandle& nh)
     sphere3.dimensions.push_back(0.08);
     sphere_radius.push_back(0.08);
     co3.primitives.push_back(sphere3);
+
+    shape_msgs::SolidPrimitive sphere4;
+    sphere4.type = shape_msgs::SolidPrimitive::SPHERE;
+    sphere4.dimensions.push_back(0.02);
+   // sphere_radius.push_back(0.02);
+    point.primitives.push_back(sphere4);
 
     geometry_msgs::Pose pose;
     pose.position.x = 0.28;
@@ -279,6 +290,13 @@ void addobstacles(ros::NodeHandle& nh)
     pose.orientation.w = 1.0;
     sphere_centers.push_back(Eigen::Vector3d(0.424,-0.1,0.3));
     co3.primitive_poses.push_back(pose);
+
+    pose.position.x =0.355882;
+    pose.position.y = -0.2608;
+    pose.position.z = 0.317;
+    pose.orientation.w = 1.0;
+    //sphere_centers.push_back(Eigen::Vector3d(0.424,-0.1,0.3));
+    point.primitive_poses.push_back(pose);
   
   
     
@@ -286,11 +304,13 @@ void addobstacles(ros::NodeHandle& nh)
     pub_co.publish(co);
     pub_co.publish(co2);
     pub_co.publish(co3);
+    pub_co.publish(point);
     ROS_INFO("Adding the object into the world");
     moveit_msgs::PlanningScene planning_scene;
     planning_scene.world.collision_objects.push_back(co);
     planning_scene.world.collision_objects.push_back(co2);
     planning_scene.world.collision_objects.push_back(co3);
+    planning_scene.world.collision_objects.push_back(point);
     planning_scene.is_diff = true;
     planning_scene_diff_publisher.publish(planning_scene);
     //sleep_time.sleep();

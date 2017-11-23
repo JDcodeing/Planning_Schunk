@@ -1,6 +1,6 @@
 <launch>
 
-  <node name="add_obstacle_test" pkg="moveit_tutorials" type="add_obstacle_test" respawn="false" output="screen">
+  <node name="add_obstacle_test" pkg="planning_test" type="add_obstacle_test" respawn="false" output="screen">
   </node>
 
 </launch>
