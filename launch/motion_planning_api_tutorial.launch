@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="motion_planning_api_tutorial" pkg="moveit_tutorials" type="motion_planning_api_tutorial" respawn="false" output="screen">
+  </node>
+
+</launch>

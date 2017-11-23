@@ -1,0 +1,11 @@
+<launch>
+ 
+  <node name="kinematic_test"
+        pkg="moveit_tutorials"
+        type="kinematic_test"
+        respawn="false" output="screen">
+    <rosparam command="load"
+              file="$(find lwa4p_movit_config)/config/kinematics.yaml"/>
+  </node>
+
+</launch>

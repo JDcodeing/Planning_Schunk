@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="visualstate" pkg="moveit_tutorials" type="visualstate" respawn="false" output="screen">
+  </node>
+
+</launch>

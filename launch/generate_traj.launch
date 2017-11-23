@@ -1,0 +1,6 @@
+<launch>
+
+  <node name="generate_traj" pkg="moveit_tutorials" type="generate_traj" respawn="false" output="screen">
+  </node>
+
+</launch>
