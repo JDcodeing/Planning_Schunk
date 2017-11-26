@@ -1,4 +1,4 @@
-bool isStateValid(const planning_scene::PlanningScene *planning_scene,robot_state::RobotState *state,
+bool isStateValid(robot_state::RobotState *state,
 					const robot_state::JointModelGroup *group, const std::vector<double> joint_gourp_variable_values)
 {
 	state->setJointGroupPositions(group, joint_gourp_variable_values);
@@ -13,5 +13,6 @@ bool isStateValid(const planning_scene::PlanningScene *planning_scene,robot_stat
     if (result.collision)
         return false;
    
-    return planning_scene->isStateFeasible(*state);
+    //return planning_scene->isStateFeasible(*state);
+    return true;
 }

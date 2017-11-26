@@ -96,11 +96,9 @@ bool cubic_interp_eigen(std::vector<Eigen::Vector3d>& result,
   double stepsize = 1.0/samples;
   
   result.clear();
-  for(size_t k = 0; k < (pidpoints.size()-1)*samples+1; k++)
-  {
-    Eigen::Vector3d pos = Eigen::Vector3d::Zero();
-    result.push_back(pos);
-  }
+  size_t interpsize = (pidpoints.size()-1)*samples+1;
+  result.resize(interpsize, igen::Vector3d::Zero());
+
 
   for(size_t i = 0; i < 3; i++)
   {
@@ -454,7 +452,7 @@ const Eigen::Affine3d &current_state = robot_state.getGlobalLinkTransform("arm_6
           foundonemid = true;
         //AddMidPoint((p_mid+currentpos)*0.5);
           AddMidPoint(p_mid);
-          pmids_vector.erase(it);
+          //pmids_vector.erase(it);
           break;
         }
       }

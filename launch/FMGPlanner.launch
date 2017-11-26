@@ -1,0 +1,24 @@
+<launch>
+  <arg name="goalx" default="0.56" />
+  <arg name="goaly" default="0.06" />
+  <arg name="goalz" default="0.056" />
+  <arg name="planchoice" default="0" />
+
+
+ 
+ 
+ 
+  <node name="FMGPlanner"
+        pkg="Planning_Schunk"
+        type="FMGPlanner"
+        respawn="false" output="screen">
+    <rosparam command="load"
+              file="$(find lwa4p_movit_config)/config/kinematics.yaml"/>
+    <param name="goalx" value="$(arg goalx)"/>
+    <param name="goaly" value="$(arg goaly)"/>
+    <param name="goalz" value="$(arg goalz)"/>
+    <param name="planchoice" value="$(arg planchoice)"/>
+   
+  </node>
+
+</launch>
