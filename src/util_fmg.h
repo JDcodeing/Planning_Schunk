@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <map>
 #include "spline.h"
 #include <moveit_msgs/PlanningScene.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
@@ -17,8 +18,38 @@ double fRand(double min, double max)
   return min + f * (max - min);
 }
 
+
+
+
+
+
+
+
 namespace fmgplanner
 {
+  void printtraj(const std::vector<std::vector<double> >& js)
+  {
+    std::cout <<"traj!!!!!!!!!---------------- "<<std::endl;
+    for(int i =0; i < js.size(); i++)
+    {
+
+       for(auto j: js[i])
+      {
+        std::cout << j<<" ";
+      }
+      std::cout << std::endl;
+    }
+  }
+
+  template<class T>
+  void printvec1d(const std::vector<T>& vec)
+  {
+    for(T j: vec)
+    {
+      std::cout <<j<<" ";
+    }
+    std::cout << std::endl;
+  }
 
 
   bool cubic_interp(std::vector<std::vector<double> >& result, 
@@ -32,31 +63,47 @@ namespace fmgplanner
     //if(pos_len != 6) return false;
     
     result.clear();
-    for(size_t k = 0; k < pidpoints.size()*20; k++)
+    for(size_t k = 0; k < (pidpoints.size()-1)*100+1; k++)
     {
       std::vector<double> pos(6,0.0);
       result.push_back(pos);
     }
+    std::cout <<"result size : "<< result.size()<<std::endl;
 
     for(size_t i = 0; i < pos_len; i++)
     {
       std::vector<double> X,Y;
+      std::map<double, double> points;
+
+
       for( size_t j = 0; j < pidpoints.size(); j++)
       {
-        X.push_back(j);
-        Y.push_back(pidpoints[j][i]);
+        points[j] = pidpoints[j][i];
       }
+
+     
+      for(std::map<double,double>::iterator it = points.begin(); it != points.end(); ++it) 
+      {
+          X.push_back(it->first);
+          //cout << it->first << endl;
+          Y.push_back(it->second);
+      }
+
       tk::spline s;
       s.set_points(X,Y);
       size_t k;
-      for(k =0; k<(pidpoints.size()-1)*20; k++)
+
+      for(k =0; k<(pidpoints.size()-1)*5+1; k++)
       {
-        double val  = 0.05*k;
+
+        double val  = 0.2*k;
+        //std::cout << k << " " ;
         result[k][i] = s(val);
       }
-      double val  = 0.05*k;
-      result[k][i] = s(val);
+     // std::cout << std::endl;
     }
+    //printtraj(pidpoints);
+    //printtraj(result);
     return true;
 
   }
@@ -97,12 +144,12 @@ namespace fmgplanner
 
   }
 
-  void printJointState(const robot_state::RobotState &rs)
+ /* void printJointState(const robot_state::RobotState &rs)
   {
     std::vector<double> jointvalues;
     rs.getStateValues(jointvalues);
     ROS_INFO("Q1: %f, Q2: %f, Q3: %f, Q4: %f, Q5: %f, Q6: %f",
     jointvalues[0],jointvalues[1],jointvalues[2],jointvalues[3],jointvalues[4],jointvalues[5]);
-  }
+  }*/
 
 } // namespace

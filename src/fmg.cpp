@@ -1,26 +1,46 @@
 #include <vector>
-#include "FMGPlanner.h"
 #include <iostream>
-#include <ros/ros.h>
+#include <fstream>
+//#include <stdlib.h>
 
+
+bool loadObs(const std::string filename, bool displayObsInfo)
+{
+
+	std::ifstream obsfile;
+	obsfile.open(filename.c_str(), std::ifstream::in);
+	int num = 0;
+	if(obsfile.is_open())
+	{
+		std::string line;
+		
+		while(getline(obsfile, line))
+		{
+			std::cout << line;
+			
+		}
+		obsfile.close();
+		
+
+	
+		
+		return true;
+
+	}
+	else
+	{
+		 std::cerr << "There was a problem opening the input file!\n";
+		 return false;
+	}
+  
+}
 int main()
 {
-	ros::init(argc, argv, "fmgplanner init");
-	FMGPlanner planner;
-	planner.init();
-	planner.loadObs("obs.scene",true);
-	planner.GenerateGaps();
-
-	if(planner.plan(1)) //get Traj_mid_pos 
-	{
-		if(planner.GetMidIKSolution()) // get interpTraj
-		{
-			planner.Traj_interp_tomsgs();
-		}
-	}
-
-
-	ros::shutdown();
+	
+  //return 0;
+	//loadObs("/home/juan-robotics/moveit_juan/src/planning_test/obs.scene",true);
+	//loadObs("/home/juan-robotics/moveit_juan/src/planning_test/src/obs.scene",true);
+	  loadObs("/home/juan-robotics/moveit_juan/src/planning_test/src/obs.scene",true);
 
   	return 0;
 

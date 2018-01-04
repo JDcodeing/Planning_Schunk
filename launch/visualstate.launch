@@ -1,6 +1,48 @@
 <launch>
+  
+  <arg name="pose_x" default="0.355882" />
+  <arg name="pose_y" default="0.26" />
+  <arg name="pose_z" default="0.317" />
+  
+  <arg name="joint_v1" default="0.6" />
+  <arg name="joint_v2" default="0.7" />
+  <arg name="joint_v3" default="0.4" />
+  <arg name="joint_v4" default="2" />
+  <arg name="joint_v5" default="0.8" />
+  <arg name="joint_v6" default="1.93" />
+
+  <arg name="joint2_v1" default="2.6" />
+  <arg name="joint2_v2" default="0.7" />
+  <arg name="joint2_v3" default="0.4" />
+  <arg name="joint2_v4" default="2" />
+  <arg name="joint2_v5" default="0.8" />
+  <arg name="joint2_v6" default="1.93" />
+
+  <arg name="disp_traj" default="1" />
 
   <node name="visualstate" pkg="planning_test" type="visualstate" respawn="false" output="screen">
+
+  <param name="pose_x" value="$(arg pose_x)"/>
+    <param name="pose_y" value="$(arg pose_y)"/>
+    <param name="pose_z" value="$(arg pose_z)"/>
+    
+    <param name="joint_v1" value="$(arg joint_v1)"/>
+    <param name="joint_v2" value="$(arg joint_v2)"/>
+    <param name="joint_v3" value="$(arg joint_v3)"/>
+    <param name="joint_v4" value="$(arg joint_v4)"/>
+    <param name="joint_v5" value="$(arg joint_v5)"/>
+    <param name="joint_v6" value="$(arg joint_v6)"/>
+
+    <param name="joint2_v1" value="$(arg joint2_v1)"/>
+    <param name="joint2_v2" value="$(arg joint2_v2)"/>
+    <param name="joint2_v3" value="$(arg joint2_v3)"/>
+    <param name="joint2_v4" value="$(arg joint2_v4)"/>
+    <param name="joint2_v5" value="$(arg joint2_v5)"/>
+    <param name="joint2_v6" value="$(arg joint2_v6)"/>
+    <param name="disp_traj" value="$(arg disp_traj)"/>
+  
   </node>
 
 </launch>
+
+

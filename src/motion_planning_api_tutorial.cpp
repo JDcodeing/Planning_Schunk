@@ -166,7 +166,7 @@ int main(int argc, char** argv)
 
   // Remote control is an introspection tool that allows users to step through a high level script
   // via buttons and keyboard shortcuts in Rviz
-  visual_tools.loadRemoteControl();
+ // visual_tools.loadRemoteControl();
   Eigen::Affine3d text_pose = Eigen::Affine3d::Identity();
   text_pose.translation().z() = 1.5; // above head of PR2
   visual_tools.publishText(text_pose, "MoveGroupInterface Demo", rvt::WHITE, rvt::XLARGE);

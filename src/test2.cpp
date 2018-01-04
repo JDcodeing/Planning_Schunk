@@ -2,28 +2,20 @@
 #include <iostream>     // std::cout
 #include <algorithm>    // std::lower_bound, std::upper_bound, std::sort
 #include <vector>       // std::vector
-#include <Eigen/Geometry>
-using namespace Eigen;
+#include <string>
+#include <sstream>
 using namespace std;
 
 int main (int argc, char **argv) {
-	int a;
-    if(argc==2){
-        a=argv[1];
-        b=argv[2];
-    }
-    else{
-        cout << "Please enter a number:";
-        cin >> a;
-        cout << "Please enter another number:";
-        cin >> b;
-    }
-    cout << "Addition:" << a+b << endl;
-    cout << "Subtaction:" << a-b << endl;
-    cout << "Multiplycation:" << a*b << endl;
-    cout << "Division:" << static_cast<long double>(a)/b << endl;
-    system("pause");
-    return 0;
-
+	std::vector<int> a,b,c;
+	for(int i = 0; i < 6; i++) 
+	{
+		b.push_back(i*2);
+		a.push_back(i);
+	}
+	double ha = std::abs(b[1]-a[1]);
+	auto it = std::max_element(a.begin(),a.end());
+	cout << *it << endl;
+	cout << ha << endl;
   return 0;
 }

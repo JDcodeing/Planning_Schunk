@@ -97,7 +97,7 @@ bool cubic_interp_eigen(std::vector<Eigen::Vector3d>& result,
   
   result.clear();
   size_t interpsize = (pidpoints.size()-1)*samples+1;
-  result.resize(interpsize, igen::Vector3d::Zero());
+  result.resize(interpsize, Eigen::Vector3d::Zero());
 
 
   for(size_t i = 0; i < 3; i++)

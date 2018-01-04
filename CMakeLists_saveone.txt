@@ -43,3 +43,25 @@ install(PROGRAMS
   scripts/move_group_python_interface_tutorial.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+#28-11-2017
+
+add_executable(kinematic_test src/kinematic_test.cpp)
+target_link_libraries(kinematic_test ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+install(TARGETS kinematic_test DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(myplan src/myplan.cpp)
+target_link_libraries(myplan ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+install(TARGETS myplan DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(add_obstacle_test src/add_obstacle_test.cpp)
+target_link_libraries(add_obstacle_test ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+install(TARGETS add_obstacle_test DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(generate_traj src/generate_traj.cpp)
+target_link_libraries(generate_traj ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+install(TARGETS generate_traj DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+add_executable(visualstate src/visualstate.cpp)
+target_link_libraries(visualstate ${catkin_LIBRARIES} ${Boost_LIBRARIES})
+install(TARGETS visualstate DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

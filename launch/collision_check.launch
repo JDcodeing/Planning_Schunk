@@ -1,0 +1,28 @@
+<launch>
+  
+  <arg name="jointv1" default="1.111954" />
+  <arg name="jointv2" default="-1.213461" />
+  <arg name="jointv3" default="-1.039175" />
+  <arg name="jointv4" default="-2.163782" />
+  <arg name="jointv5" default="-2.063634" />
+  <arg name="jointv6" default="1.930421" />
+ 
+ 
+  <node name="collision_check"
+        pkg="planning_test"
+        type="collision_check"
+        respawn="false" output="screen">
+    <rosparam command="load"
+              file="$(find lwa4p_movit_config)/config/kinematics.yaml"/>
+    <param name="jointv1" value="$(arg jointv1)"/>
+    <param name="jointv2" value="$(arg jointv2)"/>
+    <param name="jointv3" value="$(arg jointv3)"/>
+    <param name="jointv4" value="$(arg jointv4)"/>
+    <param name="jointv5" value="$(arg jointv5)"/>
+    <param name="jointv6" value="$(arg jointv6)"/>
+   
+  </node>
+
+</launch>
+
+
