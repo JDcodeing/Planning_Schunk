@@ -9,7 +9,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Transform.h>
 
-namespace dr {
+namespace fmg {
 
 /// Convert a ROS Point to an Eigen vector.
 inline Eigen::Vector3d toEigen(geometry_msgs::Point const & vector) {

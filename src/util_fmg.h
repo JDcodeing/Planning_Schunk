@@ -12,10 +12,22 @@
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit_msgs/ApplyPlanningScene.h>
 
+#include "eigen_ros.hpp"
+
 double fRand(double min, double max)
 {
   double f = (double)rand() / RAND_MAX;
   return min + f * (max - min);
+}
+
+Eigen::Vector3d Vector3dRand(const Eigen::Vector3d &vec, double min, double max)
+{
+  Eigen::Vector3d res;
+  for(int i = 0; i < 3; i++)
+  {
+    res[i] = vec[i] + fRand(min,max);
+  }
+  return res;
 }
 
 
@@ -144,6 +156,50 @@ namespace fmgplanner
 
   }
 
+  void interpolate(const Eigen::Vector3d &from, const Eigen::Vector3d &to, const double t, Eigen::Vector3d &state) 
+{
+    state = from + (to-from)*t;
+}
+
+void interpolateCartesianPath(std::vector<Eigen::Vector3d> &CartesianPath, const double stepsize_cart)
+{
+    if(CartesianPath.size() <2) 
+    return;
+    std::vector<Eigen::Vector3d> newPath(1, CartesianPath[0]);
+
+    for(unsigned int i = 1; i < CartesianPath.size(); ++i)
+    {
+        double distance  = (CartesianPath[i] - CartesianPath[i-1]).norm();
+        if(distance < std::numeric_limits<double>::epsilon()) continue;
+        int step = distance/stepsize_cart; // floor (+0.5)
+        double fic = 1.0/step;
+
+        Eigen::Vector3d temp = Eigen::Vector3d(0,0,0);
+        for(unsigned int j = 0; j < step; ++j)
+        {
+            interpolate(CartesianPath[i-1], CartesianPath[i], fic*(1+j), temp);
+            newPath.push_back(temp);
+        }
+    }
+
+    CartesianPath.assign(newPath.begin(), newPath.end());
+
+}
+
+
+
+void toROSPoseVec(const std::vector<Eigen::Vector3d> posvec, std::vector<geometry_msgs::Pose> PoseMsgs)
+{
+  Eigen::Isometry3d eigenpose= Eigen::Isometry3d::Identity();
+  geometry_msgs::Pose temp;
+  for(unsigned int i = 0; i < posvec.size(); i++)
+  {
+    eigenpose.translation() = posvec[i];
+    temp = fmg::toRosPose(eigenpose);
+    PoseMsgs.push_back(temp);
+  }
+
+}
  /* void printJointState(const robot_state::RobotState &rs)
   {
     std::vector<double> jointvalues;

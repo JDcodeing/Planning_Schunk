@@ -7,7 +7,7 @@
 
 #include <algorithm>
 
-namespace dr {
+namespace fmg {
 
 	/// A pose convention.
 	struct PoseHeader {
