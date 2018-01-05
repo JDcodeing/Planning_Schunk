@@ -208,15 +208,15 @@ int main(int argc, char** argv)
   Eigen::Affine3d pose= Eigen::Affine3d::Identity();
   
   pose.translation() = Eigen::Vector3d(0,0,0);
-  geometry_msgs::Pose start_pose = dr::toRosPose(dr::affineToIsometry(pose));
+  geometry_msgs::Pose start_pose = fmg::toRosPose(fmg::affineToIsometry(pose));
   start_pose.position.x = start_state.translation()[0];
   start_pose.position.y = start_state.translation()[1];
   start_pose.position.z = start_state.translation()[2];
 
 
-  //geometry_msgs::Pose end_effector_pose = dr::toRosPose(dr::affineToIsometry(pose));
+  //geometry_msgs::Pose end_effector_pose = fmg::toRosPose(fmg::affineToIsometry(pose));
   Eigen::Vector3d step = (end_effector_state.translation()-start_state.translation());
-  start_pose.orientation = dr::toRosQuaternion(Eigen::Quaterniond(end_effector_state.rotation()));
+  start_pose.orientation = fmg::toRosQuaternion(Eigen::Quaterniond(end_effector_state.rotation()));
  
   for(int i =0; i < 1; i++)
   {

@@ -143,14 +143,16 @@ public:
 	bool replan_v2(int replan_startpoint, std::vector<int> oldtraj,std::vector<int> searchnode_rec);
 	bool plan(float checkgoal);
 	bool plan_dynamic(const Eigen::Vector3d start);
-	bool get_dynamic_midpoints(const Eigen::Vector3d start);
+	bool get_dynamic_midpoints(const Eigen::Vector3d start, int recomputenum);
+	bool get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputenum);
 	void test();
 	void test_v2();
 	void test_v2_collisionfree();
 	void test_dynamic();
 	void findCartesianPath();
-	void findCartesianPath_my();
+	bool findCartesianPath_my(int recomputenum);
 	void run();
+	void plan_cartesianpath_validpath();
 	int choice;
 
 private:
@@ -159,6 +161,7 @@ private:
 	void addObstoScene(); 
 	void GenerateGaps();
 	void GenerateGaps_dynamic(Eigen::Vector3d cur, std::vector<mid_info> &result);
+
 	mid_info computetan(int index,const Eigen::Vector3d& c1, const double& r1, const Eigen::Vector3d& c2, const double& r2, const Eigen::Vector3d &cur);
 
 	bool isPointinObs(const Eigen::Vector3d& point)
@@ -173,7 +176,7 @@ private:
 	void AddMidPoint(const mid_info& midpoint)
 	{
 		std::cout<<"!!!!!!!!!!!!!!!!!!!add one mid!!" <<std::endl;
-		Traj_mid_pos.push_back(midpoint);
+		Traj_mid_info.push_back(midpoint);
 	}
 	bool checkSegment(const Eigen::Vector3d& con, const Eigen::Vector3d& point);
 	bool checkPoseCollisionwithIK(const geometry_msgs::Pose & pose_msg, moveit_msgs::RobotState & init_state_msgs, moveit_msgs::RobotState &res_state_msgs);
@@ -200,7 +203,7 @@ private:
 	void generategaps_ObsEnv(std::vector<mid_info>& result);
 	void generategaps_CurEnv(const Eigen::Vector3d &cur, std::vector<mid_info>& result);
 	bool smooth_traj();
-	bool smooth_valid(const std::vector<double> v1, const std::vector<double> &v2);	
+	bool smooth_valid(const std::vector<double> &v1, const std::vector<double> &v2, double &max_diff);	
 	bool AddCartesianPoint(const Eigen::Vector3d &pre, const Eigen::Vector3d &after,moveit_msgs::RobotState & moveit_init, moveit_msgs::RobotState &moveit_res);
 
 	//bool isMidFree(const Eigen::Vector3d& point);

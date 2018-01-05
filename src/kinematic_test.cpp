@@ -85,7 +85,7 @@ std::cout<< x <<" "<< y  <<" "<< z << std::endl;
   
   pose.translation() = Eigen::Vector3d(x,y,z);
 
-  geometry_msgs::Pose end_effector_pose = dr::toRosPose(dr::affineToIsometry(pose));
+  geometry_msgs::Pose end_effector_pose = fmg::toRosPose(fmg::affineToIsometry(pose));
   end_effector_pose.orientation.x = -0.198;
   end_effector_pose.orientation.y = 0;
   end_effector_pose.orientation.z = 0.9;

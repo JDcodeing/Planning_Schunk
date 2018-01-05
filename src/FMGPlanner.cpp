@@ -471,9 +471,9 @@ bool FMGPlanner::checkPoseCollisionwithIK(const geometry_msgs::Pose & pose_msg, 
       
 }
 
-bool FMGPlanner::smooth_valid(const std::vector<double> v1, const std::vector<double> &v2, double &max_diff)
+bool FMGPlanner::smooth_valid(const std::vector<double> &v1, const std::vector<double> &v2, double &max_diff)
 {
-	double max_diff=0;
+	
 	if(v1.size() != v2.size())
 	{
 		ROS_ERROR_STREAM("smooth_valid function : size not match!");
@@ -496,13 +496,14 @@ bool FMGPlanner::smooth_valid(const std::vector<double> v1, const std::vector<do
 	//}
 }
 
-void FMGPlanner::smooth_traj()
+bool FMGPlanner::smooth_traj()
 {
 	
-	std::vector<double> last_values(1,initpTraj.back());
+	std::vector<double> last_values(initpTraj.back());
 	int initp_size = initpTraj.size();
 	ROS_INFO_STREAM("smooth traj begin! the size is "<< initp_size);
 	double max_diff;
+	int invalidnum=0;
 	for(int i = initp_size-2; i >= 0; i--)
 	{	
 		std::cout << "the "<< i <<" th smooth check: last values"<<std::endl;
@@ -519,7 +520,7 @@ void FMGPlanner::smooth_traj()
 		}
 		else
 		{
-			int trynum=5;
+			
 			bool recomputevalid = false;
 			std::vector<double> joint_values;
 
@@ -536,9 +537,9 @@ void FMGPlanner::smooth_traj()
 	  			const Eigen::Affine3d &ee_pose = robot_state_.getGlobalLinkTransform("arm_6_link");
 			  
 				unsigned int trynum = 0;
-				while(!recomputevalid && （trynum++ < 5)）
+				while(!recomputevalid && (trynum++ < 5))
 				{
-					if(! checkCartPoseCollisionRand(mid_points[i],0.05,trynum,moveit_init,moveit_res))
+					if(! checkCartPoseCollisionRand(ee_pose.translation(),0.05,trynum,moveit_init,moveit_res))
 					{
 						recomputevalid = false;
 						continue;
@@ -558,7 +559,7 @@ void FMGPlanner::smooth_traj()
 			        }
 			        else // not smooth_valid
 			        {
-			        	recomputevalid = false；
+			        	recomputevalid = false;
 			        	if(maxdiff_tmp < max_diff)
 			        	{
 			        		initpTraj[i] = joint_values;
@@ -569,11 +570,14 @@ void FMGPlanner::smooth_traj()
 				}
 				if(!recomputevalid)
 				{
+					invalidnum++;
 					ROS_ERROR_STREAM("found one unsmooth state: " <<i<<"th state");
 				}			
 				
 		}
-	}	
+	}
+	if(invalidnum) return false;
+	return true;
 }
 
 bool FMGPlanner::regenerateIK(const Eigen::Affine3d endpose,  std::vector<double> &joint_values)
@@ -625,7 +629,7 @@ bool FMGPlanner::get_dynamic_midpoints(const Eigen::Vector3d start, int recomput
 bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputenum)
 {
 	Eigen::Vector3d cur = start;
-	std::vector<Eigen::Vector3d> GapSet;
+	std::vector<mid_info> GapSet;
 	 
 	int stepnum = 0;
   	Traj_mid_pos.push_back(cur);
@@ -861,7 +865,7 @@ bool FMGPlanner::AddCartesianPoint(const Eigen::Vector3d &pre, const Eigen::Vect
 	fmgplanner::interpolate(pre,after,0.5, mid);
 	if(!checkSegment_dis2obs(pre,mid) || !checkSegment_dis2obs(mid,after))
 	{
-		ROS_ERROR_STREAM("AddCartesianPoint Segment Check failed!")
+		ROS_ERROR_STREAM("AddCartesianPoint Segment Check failed!");
 		return false;
 	}
 	
@@ -894,6 +898,7 @@ bool FMGPlanner::GetMidIKSolution(const std::vector<Eigen::Vector3d> &mid_points
 	moveit::core::robotStateToRobotStateMsg(robot_state_,moveit_init);
   	bool PoseValid = 0;
   	int invalidnum = 0;
+  	IKsolve_forward = 1;
   	if(IKsolve_forward==1)
   	{
   		initpTraj.push_back(start_values);
@@ -941,32 +946,7 @@ bool FMGPlanner::GetMidIKSolution(const std::vector<Eigen::Vector3d> &mid_points
 
 		}  		
   	}
-  	else
-  	{
-  		for(size_t i = mid_size-1; i > 0; i--)
-		{
-			if(checkCartPoseCollision(mid_points[i], moveit_init,moveit_res))
-			{
-				moveit::core::robotStateMsgToRobotState(moveit_res, robot_state_);
-	           	robot_state_.copyJointGroupPositions(joint_model_group_, joint_values);
-	           	std::cout << "display one state!!"<<std::endl;
-				visual_tools_->publishRobotState(robot_state_, rviz_visual_tools::GREEN);
-
-				moveit_init = moveit_res;
-				initpTraj.push_back(joint_values);
-				ros::Duration(3).sleep();
-			}
-			else
-			{
-				//ROS_ERROR_STREAM("Mid Traj Size < 2 !!");
-				std::cout << "the "<< i <<" th mid point IK failed!!"<<std::endl;
-				std::cout << mid_points[i]<<std::endl;
-				return false;
-			}
-
-		}
-		initpTraj.push_back(start_values);
-	}
+  	
 	
 	if(invalidnum>0) return false;
 	return true;
@@ -1029,17 +1009,20 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 	if(init_IKsolved)
 		ROS_INFO_STREAM("Initial path : all IK solutions found!");
 	else
-		ROS_ERROR_STREAM("Initial path : not all IK solution found ")
+		ROS_ERROR_STREAM("Initial path : not all IK solution found ");
 
 	// if the difference between two sets of consecutive joint values is larger than "smooth_tolerance", recompute IK solution
 	// the process is done backward
 	// output : initpTraj
 	bool smooth = smooth_traj();
 	if(smooth) 
-		ROS_INFO_STREAM("Smoothing Completed!")
+		ROS_INFO_STREAM("Smoothing Completed!");
 	else
-		ROS_ERROR_STREAM("Smoothing failed!")
+		ROS_ERROR_STREAM("Smoothing failed!");
 
+	fmgplanner::printtraj(initpTraj);
+
+	return false;
 	// get the trajectory via cubic interpolation
 	bool interp_suc = fmgplanner::cubic_interp(interpTraj, initpTraj);
 	if(!interp_suc)

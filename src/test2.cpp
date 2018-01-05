@@ -3,10 +3,9 @@
 #include <algorithm>    // std::lower_bound, std::upper_bound, std::sort
 #include <vector>       // std::vector
 #include <string>
-#include <Eigen/Geometry>
-#include <Eigen/Dense>
 
 using namespace std;
+/*
 void interpolate(const Eigen::Vector3d &from, const Eigen::Vector3d &to, const double t, Eigen::Vector3d &state) 
 {
     state = from + (to-from)*t;
@@ -50,12 +49,15 @@ Eigen::Vector3d Vector3dRand(Eigen::Vector3d vec, double min, double max)
   }
   return res;
 }
-
+*/
 int main (int argc, char **argv) {
-	std::vector<Eigen::Vector3d> path;
-	Eigen::Vector3d v(1,3,6);
-	Eigen::Vector3d res = Vector3dRand(v,-0.02,0.02);
-	cout << res;
+	std::vector<std::vector<double> > a;
+	std::vector<double> b{10,1,3,4}, c{1,2,3,4};
+	a.push_back(b);
+	a.push_back(c);
+	std::vector<double> d(a.back());
+	for(auto i:d) cout<<i<<" ";
+		cout << endl;
 
   return 0;
 }

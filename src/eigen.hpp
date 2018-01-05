@@ -65,37 +65,37 @@ namespace fmg {
 
 	/// Create a rotation with a given angle and axis and center of rotation.
 	inline Eigen::Isometry3d rotate(double angle, Eigen::Vector3d const & axis, Eigen::Vector3d const & pivot_point) {
-		return dr::translate(pivot_point) * Eigen::AngleAxisd{angle, axis} * dr::translate(-pivot_point);
+		return fmg::translate(pivot_point) * Eigen::AngleAxisd{angle, axis} * fmg::translate(-pivot_point);
 	}
 
 	/// Create a rotation around the X axis with a given angle.
 	inline Eigen::AngleAxisd rotateX(double angle) {
-		return dr::rotate(angle, axes::x());
+		return fmg::rotate(angle, axes::x());
 	}
 
 	/// Create a rotation around the X axis with a given angle and center of rotation.
 	inline Eigen::Isometry3d rotateX(double angle, Eigen::Vector3d const & pivot_point) {
-		return dr::rotate(angle, axes::x(), pivot_point);
+		return fmg::rotate(angle, axes::x(), pivot_point);
 	}
 
 	/// Create a rotation around the Y axis with a given angle.
 	inline Eigen::AngleAxisd rotateY(double angle) {
-		return dr::rotate(angle, axes::y());
+		return fmg::rotate(angle, axes::y());
 	}
 
 	/// Create a rotation around the Y axis with a given angle and center of rotation.
 	inline Eigen::Isometry3d rotateY(double angle, Eigen::Vector3d const & pivot_point) {
-		return dr::rotate(angle, axes::y(), pivot_point);
+		return fmg::rotate(angle, axes::y(), pivot_point);
 	}
 
 	/// Create a rotation around the Z axis with a given angle.
 	inline Eigen::AngleAxisd rotateZ(double angle) {
-		return dr::rotate(angle, axes::z());
+		return fmg::rotate(angle, axes::z());
 	}
 
 	/// Create a rotation around the Z axis with a given angle and center of rotation.
 	inline Eigen::Isometry3d rotateZ(double angle, Eigen::Vector3d const & pivot_point) {
-		return dr::rotate(angle, axes::z(), pivot_point);
+		return fmg::rotate(angle, axes::z(), pivot_point);
 	}
 
 	/// Convert rpy to quaternions. Convention here is z-y-x.

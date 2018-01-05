@@ -2,7 +2,7 @@
   <arg name="goalx" default="0.56" />
   <arg name="goaly" default="0.06" />
   <arg name="goalz" default="0.056" />
-  <arg name="max_toobs" default="0.08" />
+  <arg name="max_toobs" default="0.06" />
   <arg name="stepsize_cartesian" default="0.08" />
   <arg name="planchoice" default="4" />
   <arg name="improve_plantraj" default="1" />

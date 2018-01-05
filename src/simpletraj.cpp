@@ -142,6 +142,7 @@ node_handle.getParam("joint_v1", v1);
   printJointPos(robot_state);
 
   visual_tools.publishRobotState(robot_state, rviz_visual_tools::DEFAULT);
+  
 
   //bool found_ik = robot_state.setFromIK(joint_model_group, end_effector_state, 10, 0.1);
   

@@ -3,12 +3,13 @@
   <arg name="pose_y" default="-0.26" />
   <arg name="pose_z" default="0.317" />
 
-  <arg name="joint_v1" default="0" />
-  <arg name="joint_v2" default="0" />
-  <arg name="joint_v3" default="0" />
-  <arg name="joint_v4" default="0" />
-  <arg name="joint_v5" default="0" />
-  <arg name="joint_v6" default="1" />
+
+  <arg name="joint_v1" default="-0.135481" />
+  <arg name="joint_v2" default="0.37461" />
+  <arg name="joint_v3" default="0.950472" />
+  <arg name="joint_v4" default="2.77138" />
+  <arg name="joint_v5" default="-0.308442" />
+  <arg name="joint_v6" default="2.04805 " />
  
  
   <node name="simpletraj"

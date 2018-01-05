@@ -482,7 +482,7 @@ const Eigen::Affine3d &current_state = robot_state.getGlobalLinkTransform("arm_6
 
   Eigen::Affine3d pose= Eigen::Affine3d::Identity();
   pose.translation() = Eigen::Vector3d::Zero();
-  geometry_msgs::Pose pose_msg = dr::toRosPose(dr::affineToIsometry(pose));
+  geometry_msgs::Pose pose_msg = fmg::toRosPose(fmg::affineToIsometry(pose));
   
   std::vector<double> joint_values = {0.1326,-2.2056,-1.011,-0.098,-1.203,-2.8162};
 
@@ -514,7 +514,7 @@ const Eigen::Affine3d &current_state = robot_state.getGlobalLinkTransform("arm_6
 
       pose.translation() = *it;
       std::cout <<"!!!!!!!!pose "<< pose.translation()<<std::endl;
-      pose_msg = dr::toRosPose(dr::affineToIsometry(pose));
+      pose_msg = fmg::toRosPose(fmg::affineToIsometry(pose));
       
   
    pose_msg.orientation.x = -0.19;
