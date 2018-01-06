@@ -70,6 +70,7 @@ int FMGPlanner::init()
   	node_handle_.getParam("smooth_tol", smooth_tolerance);
   	node_handle_.getParam("max_cubic_stepsize", max_cubic_stepsize);
   	node_handle_.getParam("bSpline_maxstep", bSpline_maxstep);
+  	node_handle_.getParam("only_look_Traj_mid_pos",only_look_Traj_mid_pos);
   	
 
   	//random
@@ -1132,6 +1133,7 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 		for(int i = 0; i < Traj_mid_pos; i++)
 			ROS_INFO(Traj_mid_pos[i]);
 	}
+	if(only_look_Traj_mid_pos) return false;
 
 	ROS_INFO_STREAM("smoothBspline! size: "<< Traj_mid_pos.size());
 	if(smoothBspline(Traj_mid_pos,bSpline_maxstep))

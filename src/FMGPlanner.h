@@ -138,6 +138,7 @@ private:
 	double smooth_tolerance;
 	double max_cubic_stepsize;
 	int bSpline_maxstep;
+	int only_look_Traj_mid_pos;
 	
 
 public:
