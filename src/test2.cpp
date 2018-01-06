@@ -3,6 +3,8 @@
 #include <algorithm>    // std::lower_bound, std::upper_bound, std::sort
 #include <vector>       // std::vector
 #include <string>
+#include <cmath>
+#include "spline.h"
 
 using namespace std;
 /*
@@ -50,14 +52,98 @@ Eigen::Vector3d Vector3dRand(Eigen::Vector3d vec, double min, double max)
   return res;
 }
 */
-int main (int argc, char **argv) {
-	std::vector<std::vector<double> > a;
-	std::vector<double> b{10,1,3,4}, c{1,2,3,4};
-	a.push_back(b);
-	a.push_back(c);
-	std::vector<double> d(a.back());
-	for(auto i:d) cout<<i<<" ";
-		cout << endl;
+void print(vector<double> a)
+{
+  for(int i = 0; i < a.size(); i++)
+    cout << a[i]<<" ";
+  cout << endl;
+  return;
+}
+double max_diff(const std::vector<double> &next_vec, const std::vector<double> &vec)
+{
+  size_t len = vec.size();
+  double maxdiff = 0, tmp;
+  for(unsigned i = 0; i < len; i++)
+  {
+    tmp = std::abs(next_vec[i] - vec[i]);
+    if(tmp > maxdiff) maxdiff = tmp;
+  }
+  return maxdiff;
+}
+bool cubic_interp(std::vector<std::vector<double> >& result, 
+            const std::vector<std::vector<double> >& pidpoints, const double max_diff_step)
+  {
+    size_t pos_len = 0;
+    size_t pointsize = pidpoints.size();
+    if(pidpoints.size()>1)
+      pos_len = pidpoints[0].size();
+    else
+      return false;
+    //if(pos_len != 6) return false;
+    if(!result.empty())
+      result.clear();
 
+    // get the max diff 
+    double maxdiff;
+    int step = 0;
+    std::vector<double> index;
+    index.reserve(pointsize);
+    index.push_back(0);
+    for(size_t i = 1; i < pointsize; i++)
+    {
+      maxdiff = max_diff(pidpoints[i],pidpoints[i-1]);
+      step += (int)floor(maxdiff/max_diff_step+0.5);
+      index.push_back(step);
+    }
+
+    result.resize(index.back()+1,vector<double>(6,0));
+    for(size_t i = 0; i < pos_len; i++)
+    {
+      std::vector<double> Y;
+      
+      for( size_t j = 0; j < pointsize; j++)
+      {
+        Y.push_back(pidpoints[j][i]) ;
+      }
+      tk::spline s;
+      size_t k;
+      if(pointsize<=2)
+        s.set_points(index,Y,false); // linear interpolation
+      else
+        s.set_points(index,Y,true); // cubic interpolation
+
+      for(k =0; k<index.back()+1; k++)
+      {
+        result[k][i] = s(k);
+      }
+     
+    }
+    return true;
+
+}
+
+
+int main (int argc, char **argv) {
+
+	double aa[] ={1.2,1.4,1.6};
+
+  double ab[] ={-1.2,1.4,1.8};
+  double ac[] ={-2.2,1.8,2.1};
+  vector<double> a(aa,aa+3),b(ab,ab+3),c(ac,ac+3);
+
+  
+  vector<vector<double> > vecvec,res;
+  vecvec.push_back(a);
+  vecvec.push_back(b);
+  //vecvec.push_back(c);
+  cubic_interp(res,vecvec,0.2);
+  for(int i = 0; i < res.size() ; i ++)
+  {
+    for(int j = 0; j < 3; j++)
+    {
+      cout<< res[i][j]<<" ";
+    }
+    cout << endl;
+  }
   return 0;
 }

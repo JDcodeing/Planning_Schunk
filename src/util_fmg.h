@@ -64,7 +64,7 @@ namespace fmgplanner
   }
 
 
-  bool cubic_interp(std::vector<std::vector<double> >& result, 
+  bool cubic_interp_old(std::vector<std::vector<double> >& result, 
             const std::vector<std::vector<double> >& pidpoints)
   {
     size_t pos_len = 0;
@@ -119,6 +119,68 @@ namespace fmgplanner
     return true;
 
   }
+  double max_diff(const std::vector<double> &next_vec, const std::vector<double> &vec)
+  {
+    size_t len = vec.size();
+    double maxdiff = 0, tmp;
+    for(unsigned i = 0; i < len; i++)
+    {
+      tmp = std::abs(next_vec[i] - vec[i]);
+      if(tmp > maxdiff) maxdiff = tmp;
+    }
+    return maxdiff;
+  }
+  bool cubic_interp(std::vector<std::vector<double> >& result, 
+            const std::vector<std::vector<double> >& pidpoints, const double max_diff_step)
+  {
+    size_t pos_len = 0;
+    size_t pointsize = pidpoints.size();
+    if(pidpoints.size()>1)
+      pos_len = pidpoints[0].size();
+    else
+      return false;
+    //if(pos_len != 6) return false;
+    if(!result.empty())
+      result.clear();
+
+    // get the max diff 
+    double maxdiff;
+    int step = 0;
+    std::vector<double> index;
+    index.reserve(pointsize);
+    index.push_back(0);
+    for(size_t i = 1; i < pointsize; i++)
+    {
+      maxdiff = max_diff(pidpoints[i],pidpoints[i-1]);
+      step += (int)floor(maxdiff/max_diff_step+0.5);
+      index.push_back(step);
+    }
+
+    result.resize(index.back()+1,vector<double>(6,0));
+    for(size_t i = 0; i < pos_len; i++)
+    {
+      std::vector<double> Y;
+      
+      for( size_t j = 0; j < pointsize; j++)
+      {
+        Y.push_back(pidpoints[j][i]) ;
+      }
+      tk::spline s;
+      size_t k;
+      if(pointsize<=2)
+        s.set_points(index,Y,false); // linear interpolation
+      else
+        s.set_points(index,Y,true); // cubic interpolation
+
+      for(k =0; k<index.back()+1; k++)
+      {
+        result[k][i] = s(k);
+      }
+     
+    }
+    return true;
+
+}
 
   moveit_msgs::RobotTrajectory toROSJointTrajectory(const std::vector<std::vector<double> >& points,
                       const std::vector<std::string>& joint_names,

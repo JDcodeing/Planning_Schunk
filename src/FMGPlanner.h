@@ -136,6 +136,7 @@ private:
 	std::vector<double> start_values;
 	int IKsolve_forward;
 	double smooth_tolerance;
+	double max_cubic_stepsize;
 	
 
 public:

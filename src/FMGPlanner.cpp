@@ -66,6 +66,8 @@ int FMGPlanner::init()
   	node_handle_.getParam("stepsize_cartesian", stepsize_cart);
   	node_handle_.getParam("IK_forward", IKsolve_forward);
   	node_handle_.getParam("smooth_tol", smooth_tolerance);
+  	node_handle_.getParam("max_cubic_stepsize", max_cubic_stepsize);
+  	
 
   	//random
   	srand (time(NULL));
@@ -753,62 +755,11 @@ bool FMGPlanner::checkState(const std::vector<double>& jv)
 
 bool FMGPlanner::modify_trajPoint(const int invalid_index)
 {
-	std::vector<double> &invalidpoint = interpTraj[invalid_index];
-	robot_state::RobotState& kinematic_state = planning_scene_->getCurrentStateNonConst();
-	kinematic_state.setVariablePositions(invalidpoint);
-	const Eigen::Affine3d &end_pose_affine = kinematic_state.getGlobalLinkTransform("arm_6_link");
-	//const Eigen::Isometry3d &end_pose = end_pose_affine.matrix();
-
-	std::vector<double> newIKsol(6,0);
-	if(regenerateIK(end_pose_affine,newIKsol))
-	{
-		std::cout <<"!!! regenearte suc!!!!" <<std::endl;
-
-		initpTraj.insert(initpTraj.begin()+(invalid_index/50)+1,newIKsol);
-		std::cout << "initpTraj size: " << initpTraj.size()<<std::endl;
-		return true;
-	}
-	else
-		return false;
+	return true;
 }
 
 bool FMGPlanner::GetValidTraj()
 {
-	interpTraj.clear();
-	if(!fmgplanner::cubic_interp(interpTraj,initpTraj))
-	{
-		ROS_ERROR_STREAM("cubic first time failed!!!");
-		return false;
-	}
-	//return false;
-	std::vector<double> invalidpoint(6,0);
-	int invalid_index;
-	while(!checkValidTraj(0.02,invalid_index))
-	{
-		//return false;
-		if(modify_trajPoint(invalid_index))
-		{
-			if(fmgplanner::cubic_interp(interpTraj,initpTraj))
-			{
-				//return false;
-				continue;
-			}
-			else
-			{
-				ROS_ERROR_STREAM("Cubic in Modify failed!!!");
-				return false;
-			}
-		}
-		else
-		{
-			ROS_ERROR_STREAM("modify_trajPoint failed!!!");
-
-			return false;
-		}
-
-
-	}
-	std::cout << "Valid Traj!!" << std::endl;
 	return true;
 }
 
@@ -1024,7 +975,7 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 
 	return false;
 	// get the trajectory via cubic interpolation
-	bool interp_suc = fmgplanner::cubic_interp(interpTraj, initpTraj);
+	bool interp_suc = fmgplanner::cubic_interp(interpTraj, initpTraj,max_cubic_stepsize);
 	if(!interp_suc)
 	{
 		ROS_ERROR_STREAM("Cubic interpolation failed!");
