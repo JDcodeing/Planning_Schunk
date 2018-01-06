@@ -181,7 +181,10 @@ void FMGPlanner::addObstoScene()
 	    co.operation = moveit_msgs::CollisionObject::ADD;
 
 	    object.type = shape_msgs::SolidPrimitive::SPHERE;
-	    object.dimensions.push_back(sphere_radius[i]);
+	    object.dimensions.resize(geometric_shapes::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::SPHERE>::value);
+  		object.dimensions[shape_msgs::SolidPrimitive::SPHERE_RADIUS] = sphere_radius[i];
+
+	    //object.dimensions.push_back(sphere_radius[i]);
 	    co.primitives.push_back(object);
 
 	    
