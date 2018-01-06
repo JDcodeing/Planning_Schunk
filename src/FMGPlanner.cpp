@@ -71,6 +71,7 @@ int FMGPlanner::init()
   	node_handle_.getParam("max_cubic_stepsize", max_cubic_stepsize);
   	node_handle_.getParam("bSpline_maxstep", bSpline_maxstep);
   	node_handle_.getParam("only_look_Traj_mid_pos",only_look_Traj_mid_pos);
+  	node_handle_.getParam("robotrange",robotrange);
   	
 
   	//random
@@ -424,10 +425,7 @@ void FMGPlanner::GenerateGaps_dynamic(Eigen::Vector3d cur, std::vector<mid_info>
 {
 	ROS_INFO_STREAM("before start gaps size: " << result.size());
 	generategaps_ObsEnv(result);
-	for(int i = 0; i < result.size(); i++)
-	{
-		ROS_INFO_STREAM(result[i].pos);
-	}
+	
 	
 	int index = result.size();
 	ROS_INFO_STREAM("initial gaps size: " << index);
@@ -745,6 +743,13 @@ bool FMGPlanner::get_dynamic_midpoints(const Eigen::Vector3d start, int recomput
 	return true;	
 }
 
+void FMGPlanner::rangelimit(Eigen::Vector3d &position)
+{
+	if(position.norm()>robotrange)
+	{
+		position = robotrange*(position.normalized());
+	}
+}
 bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputenum)
 {
 	Eigen::Vector3d cur = start;
@@ -789,10 +794,7 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 					}
 					else
 					{
-						if(position.norm()>robotrange)
-						{
-							position = robotrange*(position.normalized());
-						}
+						rangelimit(position);
 						Traj_mid_pos.push_back(position);
 						cur = position;
 						foundone = true;
@@ -810,10 +812,13 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 					//check next mid point
 					Eigen::Vector3d tmp;
 					if(checkSegment_dis2obs(cur,closestpoint,tmp) && checkSegment_dis2obs(closestpoint,onemid.pos,tmp))
-					{
+					{	
+						rangelimit(closestpoint);
+						tmp = onemid.pos;
+						rangelimit(tmp);
 						Traj_mid_pos.push_back(closestpoint);
-						Traj_mid_pos.push_back(onemid.pos);
-						cur = onemid.pos;
+						Traj_mid_pos.push_back(tmp); //todo : shortcutpath
+						cur = tmp;
 						foundone = true;
 						ROS_INFO_STREAM("segment too close to obs: " << segvalid<<"but add one more");
 						break;
@@ -1130,8 +1135,12 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 	else
 	{
 		ROS_INFO_STREAM("the Traj_mid_pos: , the "<<recomputenum<<" th computation");
-		for(int i = 0; i < Traj_mid_pos; i++)
-			ROS_INFO(Traj_mid_pos[i]);
+		for(int i = 0; i < Traj_mid_pos.size(); i++)
+		{	for(int j = 0; j < 3; j++)
+				std::cout << Traj_mid_pos[i][j]<<" ";
+				std::cout << std::endl;
+			}
+		std::cout <<"*************************"<< std::endl;
 	}
 	if(only_look_Traj_mid_pos) return false;
 

@@ -10,7 +10,8 @@
   <arg name="smooth_tol" default="2.2" />
   <arg name="bSpline_maxstep" default = "1" />
   <arg name="max_cubic_stepsize" default = "0.04" />
-  <arg name="only_look_Traj_mid_pos" default = "1" />
+  <arg name="only_look_Traj_mid_pos" default = "0" />
+  <arg name="robotrange" default = "0.8" />
   
 
  
@@ -32,6 +33,7 @@
     <param name="bSpline_maxstep" value="$(arg bSpline_maxstep)"/>
     <param name="max_cubic_stepsize" value="$(arg max_cubic_stepsize)"/>
     <param name="only_look_Traj_mid_pos" value="$(arg only_look_Traj_mid_pos)"/>
+    <param name="robotrange" value="$(arg robotrange)"/>
    
   </node>
 
