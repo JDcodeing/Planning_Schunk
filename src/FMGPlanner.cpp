@@ -54,6 +54,8 @@ int FMGPlanner::init()
   	cur2goal_dis = (currentpos-goal).norm();
   	robot_state_.copyJointGroupPositions(joint_model_group_, start_values);
   	initpTraj.clear();
+
+  	pmids_ObsEnv_size = 0;
   	
 
   	//goal
@@ -203,6 +205,7 @@ void FMGPlanner::generategaps_ObsEnv(std::vector<mid_info>& result)
 {
 	if(pmids_ObsEnv_size<0)// checked already, the size is zero
 	{
+		ROS_ERROR_STREAM("checked already, the size is zero");
 		return;
 	}
 	if(pmids_ObsEnv.size() > 0)

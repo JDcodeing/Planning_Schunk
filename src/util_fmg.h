@@ -156,7 +156,7 @@ namespace fmgplanner
       index.push_back(step);
     }
 
-    result.resize(index.back()+1,vector<double>(6,0));
+    result.resize(index.back()+1,std::vector<double>(6,0));
     for(size_t i = 0; i < pos_len; i++)
     {
       std::vector<double> Y;
