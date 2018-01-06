@@ -460,7 +460,7 @@ mid_info FMGPlanner::computetan(int index,const Eigen::Vector3d& c1, const doubl
 }
 
 
-double FMGPlanner::checkSegment_dis2obs(const Eigen::Vector3d& con, const Eigen::Vector3d& point)
+double FMGPlanner::checkSegment_dis2obs(const Eigen::Vector3d& con, const Eigen::Vector3d& point, Eigen::Vector3d &closestpoint)
 {
   	//std::cout<<"&&&&&&&&&&&&&&&&&&& checking is free point:"<<point<<std::endl;
 	if(point.norm()>0.8)
@@ -502,11 +502,16 @@ double FMGPlanner::checkSegment_dis2obs(const Eigen::Vector3d& con, const Eigen:
       	double closest_dis = sqrt(cur2obs.dot(cur2obs) - proj*proj)-sphere_radius[i];
      	 //double closest_dis2 = (sphere_centers[i] - closestpoint).norm() - sphere_radius[i];
     	//  std::cout<<"&&&&&&&&&&&&&&&&&&& closest_dis:"<<closest_dis<<" "<<closest_dis2<<std::endl;
-      	if(closest_dis  > to_obs)
+      	if(closest_dis  > 0)
       	{
-      		if(closest_dis < dis_obs_min) dis_obs_min = closest_dis;
+      		if(closest_dis < dis_obs_min) 
+      		{
+      			dis_obs_min = closest_dis;
+      			Eigen::Vector3d obs2closp = proj*dir_cu2p - cur2obs;
+      			closestpoint = (max_obs+sphere_radius[i])*obs2closp.normalized();
+      		}
       	}
-      	else if(closest_dis < to_obs)
+      	else
       	{
       		return -1;
       	}
@@ -738,6 +743,7 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 		}
 		bool foundone = false;
 
+		Eigen::Vector3d closestpoint;
 		
 		for(int j = 0; j < GapSet.size(); j++)
 		{
@@ -746,7 +752,7 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 			if((onemid.pos - goal).norm() < (cur - goal).norm())
 			{
 				// check if free and the shortest distance to obstacles
-				double segvalid = checkSegment_dis2obs(cur, onemid.pos);
+				double segvalid = checkSegment_dis2obs(cur, onemid.pos,closestpoint);
 				if(segvalid<0) // segvalid < 0 means it collides with obs
 				{continue;}
 				
@@ -773,8 +779,23 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 				}
 				else
 				{
+
 					//check next mid point
-					ROS_INFO_STREAM("segment too close to obs: " << segvalid);
+					Eigen::Vector3d tmp;
+					if(checkSegment_dis2obs(cur,closestpoint,tmp) && checkSegment_dis2obs(closestpoint,onemid.pos,tmp))
+					{
+						Traj_mid_pos.push_back(closestpoint);
+						Traj_mid_pos.push_back(onemid.pos);
+						cur = onemid.pos;
+						foundone = true;
+						ROS_INFO_STREAM("segment too close to obs: " << segvalid<<"but add one more");
+						break;
+					}
+					else
+					{
+						ROS_INFO_STREAM("segment too close to obs: " << segvalid<<" and failed to add one more");
+					}
+					
 					continue;
 				}
 				
@@ -896,9 +917,9 @@ bool FMGPlanner::Traj_validinterp_tomsgs()
 }
 bool FMGPlanner::AddCartesianPoint(const Eigen::Vector3d &pre, const Eigen::Vector3d &after,moveit_msgs::RobotState & moveit_init, moveit_msgs::RobotState &moveit_res)
 {
-	Eigen::Vector3d mid;
+	Eigen::Vector3d mid,tmp;
 	fmgplanner::interpolate(pre,after,0.5, mid);
-	if(!checkSegment_dis2obs(pre,mid) || !checkSegment_dis2obs(mid,after))
+	if(!checkSegment_dis2obs(pre,mid,tmp) || !checkSegment_dis2obs(mid,after,tmp))
 	{
 		ROS_ERROR_STREAM("AddCartesianPoint Segment Check failed!");
 		return false;
@@ -1028,7 +1049,7 @@ bool FMGPlanner::smoothBspline(std::vector<Eigen::Vector3d> &path, unsigned int 
 
     bool suc = false;
 
-    Eigen::Vector3d temp1,temp2;
+    Eigen::Vector3d temp1,temp2,tmp;
     for (unsigned int s = 0; s < maxSteps; ++s)
     {
         //
@@ -1042,7 +1063,7 @@ bool FMGPlanner::smoothBspline(std::vector<Eigen::Vector3d> &path, unsigned int 
                 fmgplanner::interpolate(path[i - 1], path[i], 0.5, temp1);
                 fmgplanner::interpolate(path[i], path[i + 1], 0.5, temp2);
                 fmgplanner::interpolate(temp1, temp2, 0.5, temp1);
-                if (checkSegment_dis2obs(path[i - 1], temp1) && checkSegment_dis2obs(temp1, path[i + 1]))
+                if (checkSegment_dis2obs(path[i - 1], temp1,tmp) && checkSegment_dis2obs(temp1, path[i + 1],tmp))
                 {
                 	path[i] = temp1;
                 	++u;
