@@ -241,6 +241,7 @@ void FMGPlanner::generategaps_ObsEnv(std::vector<mid_info>& result)
 		    dis = (len-sphere_radius[i])*0.5;
 		    pos = sphere_centers[i];
 		    pos(2) = bound - dis;
+
 		    if(!isPointinObs(pos))
 		    {
 		      pmids_ObsEnv.push_back(mid_info(pos,dis,pmids_ObsEnv_size));
@@ -329,16 +330,18 @@ void FMGPlanner::generategaps_ObsEnv(std::vector<mid_info>& result)
 
 // not used
 void FMGPlanner::generategaps_CurEnv(const Eigen::Vector3d &cur, std::vector<mid_info>& result)
-{int index = result.size();
+{
+	int index = result.size();
 		double ee_radius = 0.1;
 	    double len = bound - cur[2];
 	    double dis;
 	    Eigen::Vector3d pos;
+	    // between the cur and the ceiling
 	    if (len > ee_radius) 
 		{
 			dis = (len-ee_radius)*0.5;
 		    pos = cur;
-		    pos(2) = dis;
+		    pos(2) = bound - dis;
 		    if(!isPointinObs(pos))
 		    {
 		      result.push_back(mid_info(pos,0,index++));
@@ -360,13 +363,14 @@ void FMGPlanner::generategaps_CurEnv(const Eigen::Vector3d &cur, std::vector<mid
 		    }
 		}  
 
+
 	    // between the obs and yz plane , front
 	    len = bound - cur(0);
 	    if (len > ee_radius) 
 		{
 			dis = (len-ee_radius)*0.5;
 		    pos = cur;
-		    pos(0) = dis;
+		    pos(0) = bound - dis;
 		    if(!isPointinObs(pos))
 		    {
 		      result.push_back(mid_info(pos,0,index++));
@@ -379,7 +383,7 @@ void FMGPlanner::generategaps_CurEnv(const Eigen::Vector3d &cur, std::vector<mid
 		{
 			dis = (len-ee_radius)*0.5;
 		    pos = cur;
-		    pos(0) = dis;
+		    pos(0) = - bound + dis;
 		    if(!isPointinObs(pos))
 		    {
 		      result.push_back(mid_info(pos,0,index++));
@@ -392,7 +396,7 @@ void FMGPlanner::generategaps_CurEnv(const Eigen::Vector3d &cur, std::vector<mid
 		{
 			dis = (len-ee_radius)*0.5;
 		    pos = cur;
-		    pos(1) = dis;
+		    pos(1) = -bound + dis;
 		    if(!isPointinObs(pos))
 		    {
 		      result.push_back(mid_info(pos,0,index++));
@@ -405,7 +409,7 @@ void FMGPlanner::generategaps_CurEnv(const Eigen::Vector3d &cur, std::vector<mid
 		{
 			dis = (len-ee_radius)*0.5;
 		    pos = cur;
-		    pos(1) = dis;
+		    pos(1) = bound - dis;
 		    if(!isPointinObs(pos))
 		    {
 		      result.push_back(mid_info(pos,0,index++));
@@ -423,7 +427,7 @@ void FMGPlanner::GenerateGaps_dynamic(Eigen::Vector3d cur, std::vector<mid_info>
 	{
 		ROS_INFO_STREAM(result[i].pos);
 	}
-	//generategaps_CurEnv(cur, result);
+	
 	int index = result.size();
 	ROS_INFO_STREAM("initial gaps size: " << index);
 	for(size_t i = 0; i < obs_num-1; i++)
@@ -437,6 +441,7 @@ void FMGPlanner::GenerateGaps_dynamic(Eigen::Vector3d cur, std::vector<mid_info>
 			index++;
 		}
 	}
+	generategaps_CurEnv(cur, result);
 	std::sort(result.begin(), result.end(),Mid_Greater);
 	result.insert(result.begin(), mid_info(goal,0,-1));
 
@@ -478,11 +483,11 @@ mid_info FMGPlanner::computetan(int index,const Eigen::Vector3d& c1, const doubl
 double FMGPlanner::checkSegment_dis2obs(const Eigen::Vector3d& con, const Eigen::Vector3d& point, Eigen::Vector3d &closestpoint)
 {
   	//std::cout<<"&&&&&&&&&&&&&&&&&&& checking is free point:"<<point<<std::endl;
-	if(point.norm()>0.8)
-	{
-		ROS_INFO_STREAM(point);
-		return -1; // cannot reach the point
-	}
+	//if(point.norm()>0.8)
+	//{
+	//	ROS_INFO_STREAM(point);
+	//	return -1; // cannot reach the point
+	//}
 	double dis_obs_min = std::numeric_limits<double>::max();
 	double dis_cu2p = (point - con).norm();
   
@@ -524,7 +529,7 @@ double FMGPlanner::checkSegment_dis2obs(const Eigen::Vector3d& con, const Eigen:
       		{
       			dis_obs_min = closest_dis;
       			Eigen::Vector3d obs2closp = proj*dir_cu2p - cur2obs;
-      			closestpoint = (max_obs+sphere_radius[i])*obs2closp.normalized();
+      			closestpoint = (max_obs+sphere_radius[i])*(obs2closp.normalized()) + sphere_centers[i];
       		}
       	}
       	else
@@ -764,15 +769,16 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 		for(int j = 0; j < GapSet.size(); j++)
 		{
 			const mid_info& onemid = GapSet[j];
+			Eigen::Vector3d position = onemid.pos;
 			// check if near
-			if((onemid.pos - goal).norm() < (cur - goal).norm())
+			if((position - goal).norm() < (cur - goal).norm())
 			{
 				// check if free and the shortest distance to obstacles
-				double segvalid = checkSegment_dis2obs(cur, onemid.pos,closestpoint);
+				double segvalid = checkSegment_dis2obs(cur, position,closestpoint);
 				if(segvalid<0) // segvalid < 0 means it collides with obs
 				{continue;}
 				
-				else if(segvalid > max_obs) // find a valid midpoint
+				else if(segvalid >= max_obs) // find a valid midpoint
 				{
   
 					if(stepnum==0 && recomputenum>0) // when recomputing, find next valid midpoint
@@ -782,8 +788,12 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 					}
 					else
 					{
-						Traj_mid_pos.push_back(onemid.pos);
-						cur = onemid.pos;
+						if(position.norm()>robotrange)
+						{
+							position = robotrange*(position.normalized());
+						}
+						Traj_mid_pos.push_back(position);
+						cur = position;
 						foundone = true;
 						std::cout << "!!!!!!!!!!!!!!!one step !!!!!!!:  " << stepnum << std::endl;
 						ROS_INFO_STREAM("the segvalid is: " << segvalid);
@@ -1115,6 +1125,12 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 	{
 		ROS_ERROR_STREAM("get Traj_mid_pos failed!");
 		return false;
+	}
+	else
+	{
+		ROS_INFO_STREAM("the Traj_mid_pos: , the "<<recomputenum<<" th computation");
+		for(int i = 0; i < Traj_mid_pos; i++)
+			ROS_INFO(Traj_mid_pos[i]);
 	}
 
 	ROS_INFO_STREAM("smoothBspline! size: "<< Traj_mid_pos.size());
