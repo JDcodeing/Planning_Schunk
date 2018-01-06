@@ -145,6 +145,9 @@ bool FMGPlanner::loadObs(std::string filename, bool displayObsInfo)
 }
 void FMGPlanner::addObstoScene()
 {
+	planning_scene_monitor_->getPlanningScene()->removeAllCollisionObjects();
+	
+
 	ros::Publisher planning_scene_diff_publisher = node_handle_.advertise<moveit_msgs::PlanningScene>("/planning_scene", 1);
 	ros::ServiceClient planning_scene_diff_client =
 	    node_handle_.serviceClient<moveit_msgs::ApplyPlanningScene>("/apply_planning_scene");
@@ -160,21 +163,18 @@ void FMGPlanner::addObstoScene()
     }
     
 
-    ros::Publisher pub_co = node_handle_.advertise<moveit_msgs::CollisionObject>("/collision_object", 1);
-    moveit_msgs::CollisionObject co;
+    ros::Publisher pub_co = node_handle_.advertise<moveit_msgs::CollisionObject>("/collision_object", 100);
+    
     shape_msgs::SolidPrimitive object;
     geometry_msgs::Pose pose;
     
     moveit_msgs::PlanningScene planning_scene;
     moveit_msgs::ApplyPlanningScene srv;
-    planning_scene.world.collision_objects.clear();
-	    planning_scene.is_diff = true;
-	    srv.request.scene = planning_scene;
-	  	planning_scene_diff_client.call(srv);
-	    planning_scene_diff_publisher.publish(planning_scene);
     
+    ros::Rate rate(1);
     for(size_t i =0; i < obs_num; i++)
     {
+    	moveit_msgs::CollisionObject co;
     	co.header.stamp = ros::Time::now();
 	    co.header.frame_id = "world";
 	    co.id = sphere_names[i];
@@ -199,14 +199,17 @@ void FMGPlanner::addObstoScene()
 	    ROS_INFO("Adding one object into the world");
 	    
 	    planning_scene.world.collision_objects.push_back(co);
-	    planning_scene.is_diff = true;
+	    
+	    rate.sleep();
+	    
+	    
+    }
+    planning_scene.is_diff = true;
 	    srv.request.scene = planning_scene;
 	  	planning_scene_diff_client.call(srv);
 	    planning_scene_diff_publisher.publish(planning_scene);
-	    ros::Duration(3).sleep();	
-	    
-    }
- 	  	
+		ros::Duration(3).sleep(); 
+		  	
 }
 
 void FMGPlanner::GenerateGaps(){}
@@ -237,7 +240,7 @@ void FMGPlanner::generategaps_ObsEnv(std::vector<mid_info>& result)
 	    {
 		    dis = (len-sphere_radius[i])*0.5;
 		    pos = sphere_centers[i];
-		    pos(2) = dis;
+		    pos(2) = bound - dis;
 		    if(!isPointinObs(pos))
 		    {
 		      pmids_ObsEnv.push_back(mid_info(pos,dis,pmids_ObsEnv_size));
@@ -265,7 +268,7 @@ void FMGPlanner::generategaps_ObsEnv(std::vector<mid_info>& result)
 	    {
 		    dis = (len-sphere_radius[i])*0.5;
 		    pos = sphere_centers[i];
-		    pos(0) = dis;
+		    pos(0) = bound-dis;
 		    if(!isPointinObs(pos))
 		    {
 		      pmids_ObsEnv.push_back(mid_info(pos,dis,pmids_ObsEnv_size));
@@ -278,7 +281,7 @@ void FMGPlanner::generategaps_ObsEnv(std::vector<mid_info>& result)
 	    {
 		    dis = (len-sphere_radius[i])*0.5;
 		    pos = sphere_centers[i];
-		    pos(0) = dis;
+		    pos(0) = -bound + dis;
 		    if(!isPointinObs(pos))
 		    {
 		      pmids_ObsEnv.push_back(mid_info(pos,dis,pmids_ObsEnv_size));
@@ -291,7 +294,7 @@ void FMGPlanner::generategaps_ObsEnv(std::vector<mid_info>& result)
 	    {
 		    dis = (len-sphere_radius[i])*0.5;
 		    pos = sphere_centers[i];
-		    pos(1) = dis;
+		    pos(1) = -bound + dis;
 		    if(!isPointinObs(pos))
 		    {
 		      pmids_ObsEnv.push_back(mid_info(pos,dis,pmids_ObsEnv_size));
@@ -304,7 +307,7 @@ void FMGPlanner::generategaps_ObsEnv(std::vector<mid_info>& result)
 	    {
 		    dis = (len-sphere_radius[i])*0.5;
 		    pos = sphere_centers[i];
-		    pos(1) = dis;
+		    pos(1) = bound - dis;
 		    if(!isPointinObs(pos))
 		    {
 		      pmids_ObsEnv.push_back(mid_info(pos,dis,pmids_ObsEnv_size));
@@ -416,6 +419,10 @@ void FMGPlanner::GenerateGaps_dynamic(Eigen::Vector3d cur, std::vector<mid_info>
 {
 	ROS_INFO_STREAM("before start gaps size: " << result.size());
 	generategaps_ObsEnv(result);
+	for(int i = 0; i < result.size(); i++)
+	{
+		ROS_INFO_STREAM(result[i].pos);
+	}
 	//generategaps_CurEnv(cur, result);
 	int index = result.size();
 	ROS_INFO_STREAM("initial gaps size: " << index);
@@ -473,6 +480,7 @@ double FMGPlanner::checkSegment_dis2obs(const Eigen::Vector3d& con, const Eigen:
   	//std::cout<<"&&&&&&&&&&&&&&&&&&& checking is free point:"<<point<<std::endl;
 	if(point.norm()>0.8)
 	{
+		ROS_INFO_STREAM(point);
 		return -1; // cannot reach the point
 	}
 	double dis_obs_min = std::numeric_limits<double>::max();
@@ -884,6 +892,12 @@ bool FMGPlanner::GetValidTraj()
 
 bool FMGPlanner::checkValidTraj(double fic, int &invalid_index)
 {
+	bool has = planning_scene_monitor_->getPlanningScene()->getCollisionWorld()->getWorld()->hasObject("obs1");
+    std::cout << "obs1: " << has;
+    has = planning_scene_monitor_->getPlanningScene()->getCollisionWorld()->getWorld()->hasObject("obs2");
+    std::cout << "obs2: " << has;
+    has = planning_scene_monitor_->getPlanningScene()->getCollisionWorld()->getWorld()->hasObject("obs3");
+    std::cout << "obs2: " << has;
 
 	int TrajSize = interpTraj.size();
 
@@ -1161,7 +1175,7 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 void FMGPlanner::plan_cartesianpath_validpath()
 {
 	int trynum = 5;
-	for(double i = 0; i < trynum; i=i+0.5)
+	for(double i = 0; i < trynum; i=i+1)
 	{
 		if(findCartesianPath_my((int)floor(i)))
 		{

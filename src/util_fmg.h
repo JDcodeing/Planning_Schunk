@@ -170,7 +170,7 @@ namespace fmgplanner
       if(pointsize<=2)
         s.set_points(index,Y,false); // linear interpolation
       else
-        s.set_points(index,Y,true); // cubic interpolation
+        s.set_points(index,Y,false); // cubic interpolation
 
       for(k =0; k<index.back()+1; k++)
       {
