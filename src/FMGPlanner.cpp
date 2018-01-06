@@ -939,6 +939,46 @@ void FMGPlanner::findCartesianPath()
 {}
 
 
+
+bool FMGPlanner::smoothBspline(std::vector<Eigen::Vector3d> &path, unsigned int maxSteps)
+{
+	if (path.size() < 3)
+        return;
+
+    bool suc = false;
+
+    Eigen::Vector3d temp1,temp2;
+    for (unsigned int s = 0; s < maxSteps; ++s)
+    {
+        //
+
+        unsigned int i = s>0?2:1, u = 0, n1 = path.size() - 1;
+        while (i < n1)
+        {
+            //if (si->isValid(states[i - 1]))
+            //{
+                fmgplanner::interpolate(path[i - 1], path[i], 0.5, temp1);
+                fmgplanner::interpolate(path[i], path[i + 1], 0.5, temp2);
+                fmgplanner::interpolate(temp1, temp2, 0.5, temp1);
+                if (checkSegment_dis2obs(path[i - 1], temp1) && checkSegment_dis2obs(temp1, path[i + 1]))
+                {
+                	path[i] = temp1;
+                	++u;
+                }
+            //}
+
+            i += 2;
+        }
+
+        if (u == 0)
+            break;
+        suc = true;
+        fmgplanner::subdivide(path);
+    }
+    return true;
+
+}
+
 bool FMGPlanner::findCartesianPath_my(int recomputenum)
 {
 	std::cout << "test_dynamic : the start is"<<std::endl;
@@ -948,8 +988,14 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 	// find midpoints from start to goal dynamicly
 	if(! get_dynamic_mid_pos(start,recomputenum)) //get Traj_mid_pos
 	{
-		ROS_ERROR_STREAM("get Traj_mid_info failed!");
+		ROS_ERROR_STREAM("get Traj_mid_pos failed!");
 		return false;
+	}
+
+	ROS_INFO_STREAM("smoothBspline! size: "<< Traj_mid_pos.size());
+	if(smoothBspline(Traj_mid_pos))
+	{
+		ROS_INFO_STREAM("smoothBspline succeed! size: "<< Traj_mid_pos.size());
 	}
 	ROS_INFO_STREAM("The initial Cartesian Path, state size: "<< Traj_mid_pos.size());
 

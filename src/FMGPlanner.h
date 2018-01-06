@@ -206,6 +206,7 @@ private:
 	bool smooth_traj();
 	bool smooth_valid(const std::vector<double> &v1, const std::vector<double> &v2, double &max_diff);	
 	bool AddCartesianPoint(const Eigen::Vector3d &pre, const Eigen::Vector3d &after,moveit_msgs::RobotState & moveit_init, moveit_msgs::RobotState &moveit_res);
+	bool smoothBspline(std::vector<Eigen::Vector3d> &path, unsigned int maxSteps);
 
 	//bool isMidFree(const Eigen::Vector3d& point);
 

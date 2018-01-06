@@ -127,16 +127,16 @@ int main (int argc, char **argv) {
 
 	double aa[] ={1.2,1.4,1.6};
 
-  double ab[] ={-1.2,1.4,1.8};
+  double ab[] ={-1.2,1.4};
   double ac[] ={-2.2,1.8,2.1};
-  vector<double> a(aa,aa+3),b(ab,ab+3),c(ac,ac+3);
+  vector<double> a(aa,aa+3),b(ab,ab+2),c(ac,ac+3);
 
   
   vector<vector<double> > vecvec,res;
   vecvec.push_back(a);
   vecvec.push_back(b);
   //vecvec.push_back(c);
-  cubic_interp(res,vecvec,0.2);
+  /*cubic_interp(res,vecvec,0.2);
   for(int i = 0; i < res.size() ; i ++)
   {
     for(int j = 0; j < 3; j++)
@@ -144,6 +144,8 @@ int main (int argc, char **argv) {
       cout<< res[i][j]<<" ";
     }
     cout << endl;
-  }
+  }*/
+  a.swap(b);
+  print(a);
   return 0;
 }

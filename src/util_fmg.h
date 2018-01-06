@@ -223,6 +223,22 @@ namespace fmgplanner
     state = from + (to-from)*t;
 }
 
+void subdivide(std::vector<Eigen::Vector3d> &path)
+{
+  if (path.size() < 2)
+        return;
+    std::vector<Eigen::Vector3d> newpath(1,path[0]);
+    //std::vector<base::State *> newStates(1, states_[0]);
+    Eigen::Vector3d temp;
+    for (unsigned int i = 1; i < path.size(); ++i)
+    {
+        fmgplanner::interpolate(newpath.back(), path[i], 0.5, temp);
+        newpath.push_back(temp);
+        newpath.push_back(path[i]);
+    }
+    path.swap(newpath);
+}
+
 void interpolateCartesianPath(std::vector<Eigen::Vector3d> &CartesianPath, const double stepsize_cart)
 {
     if(CartesianPath.size() <2) 
