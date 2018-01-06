@@ -97,7 +97,7 @@ private:
 	std::vector<std::string> sphere_names;
 	
 	const double to_obs = 0.02;
-	int obs_num=3;
+	int obs_num=0;
 	bool visualise_ = true;
 
 	int pmids_num;
@@ -201,7 +201,7 @@ private:
 	bool Traj_validinterp_tomsgs();
 
 	void print_waypoints(const std::vector<geometry_msgs::Pose> &waypoints);
-	double checkSegment_dis2obs(const Eigen::Vector3d& con, const Eigen::Vector3d& point);
+	double checkSegment_dis2obs(const Eigen::Vector3d& con, const Eigen::Vector3d& point, Eigen::Vector3d & closepoint);
 	void generategaps_ObsEnv(std::vector<mid_info>& result);
 	void generategaps_CurEnv(const Eigen::Vector3d &cur, std::vector<mid_info>& result);
 	bool smooth_traj();

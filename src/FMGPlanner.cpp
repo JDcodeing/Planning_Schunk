@@ -167,7 +167,12 @@ void FMGPlanner::addObstoScene()
     
     moveit_msgs::PlanningScene planning_scene;
     moveit_msgs::ApplyPlanningScene srv;
-    ros::Rate rate(1);
+    planning_scene.world.collision_objects.clear();
+	    planning_scene.is_diff = true;
+	    srv.request.scene = planning_scene;
+	  	planning_scene_diff_client.call(srv);
+	    planning_scene_diff_publisher.publish(planning_scene);
+    
     for(size_t i =0; i < obs_num; i++)
     {
     	co.header.stamp = ros::Time::now();
@@ -195,7 +200,7 @@ void FMGPlanner::addObstoScene()
 	    srv.request.scene = planning_scene;
 	  	planning_scene_diff_client.call(srv);
 	    planning_scene_diff_publisher.publish(planning_scene);
-	    rate.sleep();
+	    ros::Duration(3).sleep();	
 	    
     }
  	  	
