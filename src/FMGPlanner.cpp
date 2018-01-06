@@ -69,6 +69,7 @@ int FMGPlanner::init()
   	node_handle_.getParam("IK_forward", IKsolve_forward);
   	node_handle_.getParam("smooth_tol", smooth_tolerance);
   	node_handle_.getParam("max_cubic_stepsize", max_cubic_stepsize);
+  	node_handle_.getParam("bSpline_maxstep", bSpline_maxstep);
   	
 
   	//random
@@ -100,6 +101,7 @@ bool FMGPlanner::loadObs(std::string filename, bool displayObsInfo)
 		{
 			if(line == "#sphere")
 			{
+				std::cout <<"***********!!!"<<std::endl;
 				
 				
 				std::string name;
@@ -111,6 +113,7 @@ bool FMGPlanner::loadObs(std::string filename, bool displayObsInfo)
 				sphere_names.push_back(name);
 				sphere_radius.push_back(radious);
 				sphere_centers.push_back(position);
+				std::cout <<name <<" "<<radious<<" "<<position<<std::endl;
 				line = "";
 				num++;
 			}
@@ -126,7 +129,7 @@ bool FMGPlanner::loadObs(std::string filename, bool displayObsInfo)
 		for(size_t i = 0; i < obs_num; i++)
 		{
 			std::cout << "Obstacle No. "<<i << ": radious: "<< sphere_radius[i] <<" center: " 
-						<< sphere_centers[i](0)<<" "<< sphere_centers[i](1)<<" "<< sphere_centers[i](2) << std::endl;
+						<< sphere_centers[i][0]<<" "<< sphere_centers[i][1]<<" "<< sphere_centers[i][2] << std::endl;
 		}
 	}
 		
@@ -315,8 +318,92 @@ void FMGPlanner::generategaps_ObsEnv(std::vector<mid_info>& result)
 
 // not used
 void FMGPlanner::generategaps_CurEnv(const Eigen::Vector3d &cur, std::vector<mid_info>& result)
-{}
+{int index = result.size();
+		double ee_radius = 0.1;
+	    double len = bound - cur[2];
+	    double dis;
+	    Eigen::Vector3d pos;
+	    if (len > ee_radius) 
+		{
+			dis = (len-ee_radius)*0.5;
+		    pos = cur;
+		    pos(2) = dis;
+		    if(!isPointinObs(pos))
+		    {
+		      result.push_back(mid_info(pos,0,index++));
+		      
+		    }
+		}   
 
+	  	// between the obs and the floor
+	    len = cur(2);
+	    if (len > ee_radius) 
+		{
+			dis = (len-ee_radius)*0.5;
+		    pos = cur;
+		    pos(2) = dis;
+		    if(!isPointinObs(pos))
+		    {
+		      result.push_back(mid_info(pos,0,index++));
+		      
+		    }
+		}  
+
+	    // between the obs and yz plane , front
+	    len = bound - cur(0);
+	    if (len > ee_radius) 
+		{
+			dis = (len-ee_radius)*0.5;
+		    pos = cur;
+		    pos(0) = dis;
+		    if(!isPointinObs(pos))
+		    {
+		      result.push_back(mid_info(pos,0,index++));
+		      
+		    }
+		}  
+	    // between the obs and yz plane , back
+	    len = std::abs(- bound - cur(0));
+	    if (len > ee_radius) 
+		{
+			dis = (len-ee_radius)*0.5;
+		    pos = cur;
+		    pos(0) = dis;
+		    if(!isPointinObs(pos))
+		    {
+		      result.push_back(mid_info(pos,0,index++));
+		      
+		    }
+		}  
+	    // between the obs and xz plane , left
+	    len = std::abs(- bound - cur(1));
+	    if (len > ee_radius) 
+		{
+			dis = (len-ee_radius)*0.5;
+		    pos = cur;
+		    pos(1) = dis;
+		    if(!isPointinObs(pos))
+		    {
+		      result.push_back(mid_info(pos,0,index++));
+		      
+		    }
+		}  
+	    // between the obs and xz plane , right
+	    len = std::abs(bound - cur(1));
+	    if (len > ee_radius) 
+		{
+			dis = (len-ee_radius)*0.5;
+		    pos = cur;
+		    pos(1) = dis;
+		    if(!isPointinObs(pos))
+		    {
+		      result.push_back(mid_info(pos,0,index++));
+		      
+		    }
+		}  
+		
+	return;
+}
 void FMGPlanner::GenerateGaps_dynamic(Eigen::Vector3d cur, std::vector<mid_info> &result)
 {
 	ROS_INFO_STREAM("before start gaps size: " << result.size());
@@ -376,7 +463,7 @@ mid_info FMGPlanner::computetan(int index,const Eigen::Vector3d& c1, const doubl
 double FMGPlanner::checkSegment_dis2obs(const Eigen::Vector3d& con, const Eigen::Vector3d& point)
 {
   	//std::cout<<"&&&&&&&&&&&&&&&&&&& checking is free point:"<<point<<std::endl;
-	if(point.norm()>0.65)
+	if(point.norm()>0.8)
 	{
 		return -1; // cannot reach the point
 	}
@@ -484,7 +571,7 @@ bool FMGPlanner::smooth_valid(const std::vector<double> &v1, const std::vector<d
 		ROS_ERROR_STREAM("smooth_valid function : size not match!");
 		return false;
 	}
-	for(int i=0; i < v1.size(); i++)
+	for(int i=0; i < v1.size()-1; i++)
 	{
 		double v = std::abs(v1[i] - v2[i]);
 		if(max_diff < v) max_diff = v;
@@ -744,13 +831,13 @@ bool FMGPlanner::checkState(const std::vector<double>& jv)
    // std::cout<< ha << "*************"<<std::endl;
     
 
-    if(!valid)
+    /*if(!valid)
     {
     	ROS_INFO("invalide!! Jv = [ %f, %f, %f, %f, %f, %f ]", jv[0], jv[1], jv[2], jv[3], jv[4], jv[5] );
     	visual_tools_->publishRobotState(current_state_r, rviz_visual_tools::RED);
 	
-			ros::Duration(5).sleep();
-    }
+		ros::Duration(5).sleep();
+    }*/
     return valid;
     
 
@@ -768,12 +855,6 @@ bool FMGPlanner::GetValidTraj()
 
 bool FMGPlanner::checkValidTraj(double fic, int &invalid_index)
 {
-	bool has = planning_scene_monitor_->getPlanningScene()->getCollisionWorld()->getWorld()->hasObject("obs1");
-    std::cout << "obs1: " << has;
-    has = planning_scene_monitor_->getPlanningScene()->getCollisionWorld()->getWorld()->hasObject("obs2");
-    std::cout << "obs2: " << has;
-    has = planning_scene_monitor_->getPlanningScene()->getCollisionWorld()->getWorld()->hasObject("obs3");
-    std::cout << "obs2: " << has;
 
 	int TrajSize = interpTraj.size();
 
@@ -943,7 +1024,7 @@ void FMGPlanner::findCartesianPath()
 bool FMGPlanner::smoothBspline(std::vector<Eigen::Vector3d> &path, unsigned int maxSteps)
 {
 	if (path.size() < 3)
-        return;
+        return false;
 
     bool suc = false;
 
@@ -951,6 +1032,7 @@ bool FMGPlanner::smoothBspline(std::vector<Eigen::Vector3d> &path, unsigned int 
     for (unsigned int s = 0; s < maxSteps; ++s)
     {
         //
+        if(s>0) fmgplanner::subdivide(path);
 
         unsigned int i = s>0?2:1, u = 0, n1 = path.size() - 1;
         while (i < n1)
@@ -973,7 +1055,7 @@ bool FMGPlanner::smoothBspline(std::vector<Eigen::Vector3d> &path, unsigned int 
         if (u == 0)
             break;
         suc = true;
-        fmgplanner::subdivide(path);
+        
     }
     return true;
 
@@ -993,7 +1075,7 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 	}
 
 	ROS_INFO_STREAM("smoothBspline! size: "<< Traj_mid_pos.size());
-	if(smoothBspline(Traj_mid_pos))
+	if(smoothBspline(Traj_mid_pos,bSpline_maxstep))
 	{
 		ROS_INFO_STREAM("smoothBspline succeed! size: "<< Traj_mid_pos.size());
 	}
@@ -1022,7 +1104,7 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 
 	fmgplanner::printtraj(initpTraj);
 
-	return false;
+	//return false;
 	// get the trajectory via cubic interpolation
 	bool interp_suc = fmgplanner::cubic_interp(interpTraj, initpTraj,max_cubic_stepsize);
 	if(!interp_suc)
@@ -1050,9 +1132,9 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 void FMGPlanner::plan_cartesianpath_validpath()
 {
 	int trynum = 5;
-	for(unsigned int i = 0; i < trynum; i++)
+	for(double i = 0; i < trynum; i=i+0.5)
 	{
-		if(findCartesianPath_my(i))
+		if(findCartesianPath_my((int)floor(i)))
 		{
 			Traj_validinterp_tomsgs();
 			break;
@@ -1063,9 +1145,9 @@ void FMGPlanner::plan_cartesianpath_validpath()
 void FMGPlanner::run()
 {
 	init();
-	loadObs("/home/azalea-linux/ws_moveit/src/planning_test/obs.scene",true);
+	loadObs("/home/azalea-linux/ws_moveit/src/planning_test/src/obs.scene",true);
 	addObstoScene();
-	//GenerateGaps();
+	//return;	//GenerateGaps();
 	std::cout<<" the planning choice is " << choice << std::endl;
 	if(this->choice==0)
 	{

@@ -11,11 +11,11 @@
   <arg name="joint_v5" default="0.8" />
   <arg name="joint_v6" default="1.93" />
 
-  <arg name="joint2_v1" default="2.6" />
+  <arg name="joint2_v1" default="3.6" />
   <arg name="joint2_v2" default="0.7" />
   <arg name="joint2_v3" default="0.4" />
   <arg name="joint2_v4" default="2" />
-  <arg name="joint2_v5" default="0.8" />
+  <arg name="joint2_v5" default="2.8" />
   <arg name="joint2_v6" default="1.93" />
 
   <arg name="disp_traj" default="1" />

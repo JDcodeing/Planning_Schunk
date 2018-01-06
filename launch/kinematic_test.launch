@@ -1,7 +1,7 @@
 <launch>
-  <arg name="pose_x" default="0.0516028" />
-  <arg name="pose_y" default="-0.0303545" />
-  <arg name="pose_z" default="0.729098" />
+  <arg name="pose_x" default="0" />
+  <arg name="pose_y" default="0" />
+  <arg name="pose_z" default="0.4" />
 
   <arg name="joint_v1" default="-2.922003" />
   <arg name="joint_v2" default="1.909355" />

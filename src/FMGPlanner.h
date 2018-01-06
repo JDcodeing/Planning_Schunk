@@ -137,6 +137,7 @@ private:
 	int IKsolve_forward;
 	double smooth_tolerance;
 	double max_cubic_stepsize;
+	int bSpline_maxstep;
 	
 
 public:

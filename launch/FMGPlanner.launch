@@ -1,13 +1,15 @@
 <launch>
   <arg name="goalx" default="0.56" />
-  <arg name="goaly" default="0.06" />
+  <arg name="goaly" default="0.16" />
   <arg name="goalz" default="0.056" />
   <arg name="max_toobs" default="0.06" />
-  <arg name="stepsize_cartesian" default="0.08" />
+  <arg name="stepsize_cartesian" default="0.1" />
   <arg name="planchoice" default="4" />
   <arg name="improve_plantraj" default="1" />
   <arg name="IK_forward" default="1" />
-  <arg name="smooth_tol" default="1.8" />
+  <arg name="smooth_tol" default="2.2" />
+  <arg name="bSpline_maxstep" default = "1" />
+  <arg name="max_cubic_stepsize" default = "0.04" />
 
  
   <node name="FMGPlanner"
@@ -25,6 +27,8 @@
     <param name="IK_forward" value="$(arg IK_forward)"/>
     <param name="improve_plantraj" value="$(arg improve_plantraj)"/>
     <param name="smooth_tol" value="$(arg smooth_tol)"/>
+    <param name="bSpline_maxstep" value="$(arg bSpline_maxstep)"/>
+    <param name="max_cubic_stepsize" value="$(arg max_cubic_stepsize)"/>
    
   </node>
 

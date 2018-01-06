@@ -107,6 +107,7 @@ int main(int argc, char** argv)
 /// ****************visual tool
   namespace rvt = rviz_visual_tools;
   moveit_visual_tools::MoveItVisualTools visual_tools("world","/moveit_visual_markers");
+  moveit_visual_tools::MoveItVisualTools visual_tools_2("world","/moveit_visual_markers");
   visual_tools.deleteAllMarkers();
   ros::Publisher traj_visualiser;
   traj_visualiser = node_handle.advertise<moveit_msgs::DisplayTrajectory>("/move_group/display_planned_path", 1, true);
@@ -116,6 +117,7 @@ int main(int argc, char** argv)
   // via buttons and keyboard shortcuts in Rviz
   //visual_tools.loadRemoteControl();
   visual_tools.loadRobotStatePub("/display_robot_state");
+  visual_tools_2.loadRobotStatePub("/display_robot_state2");
   
   //visual_tools.trigger();
 
@@ -186,7 +188,7 @@ int main(int argc, char** argv)
 
 
   robot_state = planning_scene->getCurrentStateNonConst();
- visual_tools.publishRobotState(robot_state, rviz_visual_tools::GREEN);
+ visual_tools_2.publishRobotState(robot_state, rviz_visual_tools::BLUE);
  ros::Duration(5).sleep();
   //visual_tools.trigger();
 
