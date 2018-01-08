@@ -3,9 +3,9 @@
 #include <chrono>
 #include "util_fmg.h"
 #include <moveit/move_group_interface/move_group.h>
-#include <moveit/planning_interface/planning_interface>
+#include <moveit/planning_interface/planning_interface.h>
 #include <time.h>
-#include <moveit_msgs/kinematic_constraints/utils.h>
+#include <moveit/kinematic_constraints/utils.h>
 
 int FMGPlanner::init()
 {
@@ -670,11 +670,11 @@ bool FMGPlanner::smooth_traj()
 			        if(smooth_valid(joint_values, last_values,maxdiff_tmp))
 			        {
 			        	recomputevalid = true;
-						std::cout << "the" <<i<<" the recompute display one state!!"<<std::endl;
-						visual_tools_->publishRobotState(robot_state_, rviz_visual_tools::GREEN);
+						//std::cout << "the" <<i<<" the recompute display one state!!"<<std::endl;
+						//visual_tools_->publishRobotState(robot_state_, rviz_visual_tools::GREEN);
 						initpTraj[i] = joint_values;
 						last_values.assign(joint_values.begin(),joint_values.end());
-						ros::Duration(3).sleep();	
+						//ros::Duration(3).sleep();	
 						break;	
 			        }
 			        else // not smooth_valid
@@ -1017,11 +1017,11 @@ bool FMGPlanner::GetMidIKSolution(const std::vector<Eigen::Vector3d> &mid_points
 				{
 					moveit::core::robotStateMsgToRobotState(moveit_res, robot_state_);
 	           		robot_state_.copyJointGroupPositions(joint_model_group_, joint_values);
-	           		std::cout << "forward display one state!!"<<std::endl;
-					visual_tools_->publishRobotState(robot_state_, rviz_visual_tools::WHITE);
+	           		//std::cout << "forward display one state!!"<<std::endl;
+					//visual_tools_->publishRobotState(robot_state_, rviz_visual_tools::WHITE);
 					moveit_init = moveit_res;
 					initpTraj.push_back(joint_values);
-					ros::Duration(3).sleep();
+					//ros::Duration(3).sleep();
 				}
 			}
 
@@ -1035,12 +1035,12 @@ bool FMGPlanner::GetMidIKSolution(const std::vector<Eigen::Vector3d> &mid_points
 			{
 				moveit::core::robotStateMsgToRobotState(moveit_res, robot_state_);
 	           	robot_state_.copyJointGroupPositions(joint_model_group_, joint_values);
-	           	std::cout << "forward display one state!!"<<std::endl;
-				visual_tools_->publishRobotState(robot_state_, rviz_visual_tools::GREEN);
+	           //	std::cout << "forward display one state!!"<<std::endl;
+				//visual_tools_->publishRobotState(robot_state_, rviz_visual_tools::GREEN);
 
 				moveit_init = moveit_res;
 				initpTraj.push_back(joint_values);
-				ros::Duration(3).sleep();
+				//ros::Duration(3).sleep();
 			}
 			else
 				{
@@ -1228,7 +1228,8 @@ void FMGPlanner::plan_cartesianpath_validpath()
 
 void FMGPlanner::benchmarkOMPL()
 {
-	planning_scene::PlanningScenePtr planning_scene(new planning_scene::PlanningScene(robot_model_);
+	planning_scene::PlanningScenePtr planning_scene = planning_scene_monitor_->getPlanningScene();
+	//(new planning_scene::PlanningScene(kinematic_model_));
 	boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager>> planner_plugin_loader;
   	planning_interface::PlannerManagerPtr planner_instance;
   	std::string planner_plugin_name;
@@ -1247,7 +1248,7 @@ void FMGPlanner::benchmarkOMPL()
   try
   {
     planner_instance.reset(planner_plugin_loader->createUnmanagedInstance(planner_plugin_name));
-    if (!planner_instance->initialize(robot_model_, node_handle_.getNamespace()))
+    if (!planner_instance->initialize(kinematic_model_, node_handle_.getNamespace()))
       ROS_FATAL_STREAM("Could not initialize planner instance");
     ROS_INFO_STREAM("Using planning interface '" << planner_instance->getDescription() << "'");
   }
@@ -1266,9 +1267,9 @@ void FMGPlanner::benchmarkOMPL()
   planning_interface::MotionPlanResponse res;
   geometry_msgs::PoseStamped pose;
   pose.header.frame_id = "world";
-  pose.pose.position.x = goalx;
-  pose.pose.position.y = goaly;
-  pose.pose.position.z = goalz;
+  pose.pose.position.x = goal(0);
+  pose.pose.position.y = goal(1);
+  pose.pose.position.z = goal(2);
   pose.pose.orientation.w = 1.0;
   std::vector<double> tolerance_pose(3, 0.01);
   std::vector<double> tolerance_angle(3, 0.01);
