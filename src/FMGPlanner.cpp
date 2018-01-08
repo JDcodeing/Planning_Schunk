@@ -229,7 +229,7 @@ void FMGPlanner::generategaps_ObsEnv(std::vector<mid_info>& result)
 	if(pmids_ObsEnv.size() > 0)
 	{
 		result.assign(pmids_ObsEnv.begin(), pmids_ObsEnv.end());
-		ROS_INFO_STREAM("obsenv gaps size: " << result.size());
+		//ROS_INFO_STREAM("obsenv gaps size: " << result.size());
 		return;
 	}
 
@@ -425,12 +425,12 @@ void FMGPlanner::generategaps_CurEnv(const Eigen::Vector3d &cur, std::vector<mid
 }
 void FMGPlanner::GenerateGaps_dynamic(Eigen::Vector3d cur, std::vector<mid_info> &result)
 {
-	ROS_INFO_STREAM("before start gaps size: " << result.size());
+	//ROS_INFO_STREAM("before start gaps size: " << result.size());
 	generategaps_ObsEnv(result);
 	
 	
 	int index = result.size();
-	ROS_INFO_STREAM("initial gaps size: " << index);
+	//ROS_INFO_STREAM("initial gaps size: " << index);
 	for(size_t i = 0; i < obs_num-1; i++)
 	{
 		for(size_t j = i+1; j < obs_num; j++)
@@ -445,7 +445,7 @@ void FMGPlanner::GenerateGaps_dynamic(Eigen::Vector3d cur, std::vector<mid_info>
 	generategaps_CurEnv(cur, result);
 	std::sort(result.begin(), result.end(),Mid_Greater);
 	result.insert(result.begin(), mid_info(goal,0,-1));
-	ROS_INFO_STREAM("final gaps size: " << result.size());
+	//ROS_INFO_STREAM("final gaps size: " << result.size());
 
 }
 
@@ -574,7 +574,7 @@ bool FMGPlanner::checkPoseCollisionwithIK(const geometry_msgs::Pose & pose_msg, 
     if(ik_service_client_.call(ik_req, ik_res))
     {
     	if (ik_res.error_code.val == moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION){
-        ROS_INFO("*******************no ik solution!!!!**************");
+        //ROS_INFO("*******************no ik solution!!!!**************");
         return false;
         } 
         else
@@ -604,7 +604,7 @@ bool FMGPlanner::smooth_valid(const std::vector<double> &v1, const std::vector<d
 		double v = std::abs(v1[i] - v2[i]);
 		if(max_diff < v) max_diff = v;
 	}
-	std::cout<<"the max is: " << max_diff<<" ";
+	//std::cout<<"the max is: " << max_diff<<" ";
 	if(max_diff < smooth_tolerance) return true;
 	/*else {
 		for(int i = 0; i < v1.size();i++)
@@ -621,17 +621,17 @@ bool FMGPlanner::smooth_traj()
 	
 	std::vector<double> last_values(initpTraj.back());
 	int initp_size = initpTraj.size();
-	ROS_INFO_STREAM("smooth traj begin! the size is "<< initp_size);
+	//ROS_INFO_STREAM("smooth traj begin! the size is "<< initp_size);
 	double max_diff;
 	int invalidnum=0;
 	for(int i = initp_size-2; i >= 0; i--)
 	{	
-		std::cout << "the "<< i <<" th smooth check: last values"<<std::endl;
+		/*std::cout << "the "<< i <<" th smooth check: last values"<<std::endl;
 		for(int k = 0; k < last_values.size();k++)
 		{
 			std::cout << last_values[k]<< "    ";
 
-		}
+		}*/
 		double maxdiff_tmp;
 		if(smooth_valid(initpTraj[i], last_values,maxdiff_tmp))
 		{
@@ -691,7 +691,7 @@ bool FMGPlanner::smooth_traj()
 				if(!recomputevalid)
 				{
 					invalidnum++;
-					ROS_ERROR_STREAM("found one unsmooth state: " <<i<<"th state");
+					//ROS_ERROR_STREAM("found one unsmooth state: " <<i<<"th state");
 				}			
 				
 		}
@@ -768,7 +768,7 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 
 		if(GapSet.size()<1)
 		{
-			std::cout << "plan fail!! Gap set is empty!!" <<std::endl;
+			//std::cout << "plan fail!! Gap set is empty!!" <<std::endl;
 			return false;
 		}
 		bool foundone = false;
@@ -787,8 +787,8 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 				double segvalid = checkSegment_dis2obs(cur, position,closestpoint);
 				if(segvalid<0) // segvalid < 0 means it collides with obs
 				{
-					ROS_ERROR_STREAM("it collides with obs");
-					ROS_ERROR_STREAM(position[0]<<" "<<position[1]<<" "<<position[2]);
+					//ROS_ERROR_STREAM("it collides with obs");
+					//ROS_ERROR_STREAM(position[0]<<" "<<position[1]<<" "<<position[2]);
 					continue;}
 				
 				else if(segvalid >= max_obs) // find a valid midpoint
@@ -797,8 +797,8 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 					if(stepnum==0 && recomputenum>0) // when recomputing, find next valid midpoint
 					{
 						recomputenum--;
-						std::cout <<"######################### recomputenum"<<std::endl;
-						std::cout << position[0] <<" "<<position[1]<<" "<< position[2]<<std::endl;
+						//std::cout <<"######################### recomputenum"<<std::endl;
+						//std::cout << position[0] <<" "<<position[1]<<" "<< position[2]<<std::endl;
 						continue;
 					}
 					else
@@ -807,9 +807,9 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 						Traj_mid_pos.push_back(position);
 						cur = position;
 						foundone = true;
-						std::cout << "!!!!!!!!!!!!!!!one step !!!!!!!:  " << stepnum << std::endl;
-						ROS_INFO_STREAM("the segvalid is: " << segvalid);
-						std::cout << onemid.pos << std::endl;
+						//std::cout << "!!!!!!!!!!!!!!!one step !!!!!!!:  " << stepnum << std::endl;
+						//ROS_INFO_STREAM("the segvalid is: " << segvalid);
+						//std::cout << onemid.pos << std::endl;
 						break;
 						
 					}
@@ -836,22 +836,22 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 					{
 						ROS_INFO_STREAM("segment too close to obs: " << segvalid<<" and failed to add one more");
 					}*/
-					ROS_ERROR_STREAM("too close to obs");
-					ROS_ERROR_STREAM(position[0]<<" "<<position[1]<<" "<<position[2]);
+					//ROS_ERROR_STREAM("too close to obs");
+					//ROS_ERROR_STREAM(position[0]<<" "<<position[1]<<" "<<position[2]);
 					continue;
 				}
 				
 			}
 			else
 			{ // check next mid point
-				ROS_ERROR_STREAM("not near to goal, the postion is ");
-				ROS_ERROR_STREAM(position[0]<<" "<<position[1]<<" "<<position[2]);
+				//ROS_ERROR_STREAM("not near to goal, the postion is ");
+				//ROS_ERROR_STREAM(position[0]<<" "<<position[1]<<" "<<position[2]);
 				continue;
 			}
 		}
 		if(!foundone)
 		{
-			ROS_ERROR_STREAM("Not found any available mid point.");
+			//ROS_ERROR_STREAM("Not found any available mid point.");
 			return false;
 		}
 		stepnum ++;
@@ -920,26 +920,26 @@ bool FMGPlanner::GetValidTraj()
 
 bool FMGPlanner::checkValidTraj(double fic, int &invalid_index)
 {
-	bool has = planning_scene_monitor_->getPlanningScene()->getCollisionWorld()->getWorld()->hasObject("obs1");
+	/*bool has = planning_scene_monitor_->getPlanningScene()->getCollisionWorld()->getWorld()->hasObject("obs1");
     std::cout << "obs1: " << has;
     has = planning_scene_monitor_->getPlanningScene()->getCollisionWorld()->getWorld()->hasObject("obs2");
     std::cout << "obs2: " << has;
     has = planning_scene_monitor_->getPlanningScene()->getCollisionWorld()->getWorld()->hasObject("obs3");
     std::cout << "obs2: " << has;
-
+	*/
 	int TrajSize = interpTraj.size();
 
 	int step = TrajSize*fic;
 	//step = 1;
-	std::cout << "TrajSize: "<< TrajSize<<" and step: "<<step << std::endl;
+	//std::cout << "TrajSize: "<< TrajSize<<" and step: "<<step << std::endl;
 	//robot_state::RobotState& kinematic_state = planning_scene_->getCurrentStateNonConst();
 	for(int i = 0; i < TrajSize; i=i+step)
 	{
 		std::vector<double> jv = interpTraj[i];
 		//vector<double> newIKsol(6,0);
-		std::cout << "i th: "<<i <<" ";
+		/*std::cout << "i th: "<<i <<" ";
 		for(auto j: jv) std::cout<<j <<" ";
-			std::cout << std::endl;
+			std::cout << std::endl;*/
 		if(!checkState(jv))
 		{
 			invalid_index = i;
@@ -1044,8 +1044,8 @@ bool FMGPlanner::GetMidIKSolution(const std::vector<Eigen::Vector3d> &mid_points
 			}
 			else
 				{
-					std::cout << "the "<< i <<" th mid point IK failed!!"<<std::endl;
-					std::cout << mid_points[i]<<std::endl;
+					//std::cout << "the "<< i <<" th mid point IK failed!!"<<std::endl;
+					//std::cout << mid_points[i]<<std::endl;
 					invalidnum++;
 					continue;
 				}
@@ -1134,8 +1134,8 @@ bool FMGPlanner::smoothBspline(std::vector<Eigen::Vector3d> &path, unsigned int 
 
 bool FMGPlanner::findCartesianPath_my(int recomputenum)
 {
-	std::cout << "test_dynamic : the start is"<<std::endl;
-	std::cout << start<<std::endl;
+	//std::cout << "test_dynamic : the start is"<<std::endl;
+	//std::cout << start<<std::endl;
 	if(Traj_mid_pos.size()>0) Traj_mid_pos.clear();
 
 	// find midpoints from start to goal dynamicly
@@ -1144,7 +1144,7 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 		ROS_ERROR_STREAM("get Traj_mid_pos failed!");
 		return false;
 	}
-	else
+	/*else
 	{
 		ROS_INFO_STREAM("the Traj_mid_pos: , the "<<recomputenum<<" th computation");
 		for(int i = 0; i < Traj_mid_pos.size(); i++)
@@ -1153,45 +1153,46 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 				std::cout << std::endl;
 			}
 		std::cout <<"*************************"<< std::endl;
-	}
+	}*/
 	if(only_look_Traj_mid_pos) return false;
 
-	ROS_INFO_STREAM("smoothBspline! size: "<< Traj_mid_pos.size());
+	//ROS_INFO_STREAM("smoothBspline! size: "<< Traj_mid_pos.size());
 	if(smoothBspline(Traj_mid_pos,bSpline_maxstep))
 	{
-		ROS_INFO_STREAM("smoothBspline succeed! size: "<< Traj_mid_pos.size());
+		//ROS_INFO_STREAM("smoothBspline succeed! size: "<< Traj_mid_pos.size());
 	}
-	ROS_INFO_STREAM("The initial Cartesian Path, state size: "<< Traj_mid_pos.size());
+	//ROS_INFO_STREAM("The initial Cartesian Path, state size: "<< Traj_mid_pos.size());
 
 	// interpolate the Cartesian path 
 	fmgplanner::interpolateCartesianPath(Traj_mid_pos, stepsize_cart);
 	
-	ROS_INFO_STREAM("The interpolated Cartesian Path, state size: "<< Traj_mid_pos.size());
+	//ROS_INFO_STREAM("The interpolated Cartesian Path, state size: "<< Traj_mid_pos.size());
 
 	// compute IK solutions of all midpoints
 	bool init_IKsolved = GetMidIKSolution(Traj_mid_pos);
-	if(init_IKsolved)
+	/*if(init_IKsolved)
 		ROS_INFO_STREAM("Initial path : all IK solutions found!");
 	else
 		ROS_ERROR_STREAM("Initial path : not all IK solution found ");
-
+	*/
 	// if the difference between two sets of consecutive joint values is larger than "smooth_tolerance", recompute IK solution
 	// the process is done backward
 	// output : initpTraj
 	bool smooth = smooth_traj();
-	if(smooth) 
+	/*if(smooth) 
 		ROS_INFO_STREAM("Smoothing Completed!");
 	else
 		ROS_ERROR_STREAM("Smoothing failed!");
-
-	fmgplanner::printtraj(initpTraj);
+	*/
+	//fmgplanner::printtraj(initpTraj);
 
 	//return false;
 	// get the trajectory via cubic interpolation
+	interpTraj.clear();
 	bool interp_suc = fmgplanner::cubic_interp(interpTraj, initpTraj,max_cubic_stepsize);
 	if(!interp_suc)
 	{
-		ROS_ERROR_STREAM("Cubic interpolation failed!");
+		//ROS_ERROR_STREAM("Cubic interpolation failed!");
 		return false;
 	}
 
@@ -1215,15 +1216,22 @@ void FMGPlanner::plan_cartesianpath_validpath()
 {
 	int trynum = 5;
 	bool find = 0;
+	double t0 = ros::Time::now();
 	for(double i = 0; i < trynum; i=i+0.5)
 	{
 		if(findCartesianPath_my((int)floor(i)))
-		{	find = 1;
-		Traj_validinterp_tomsgs();
+		{	
+			find = 1;
+			break;
+		
 		//if(findCartesianPath_my((int)floor(i)))
 		}		
-		if(find) break;
+		
 	}
+	double t1 = ros::Time::now();
+	if(find) Traj_validinterp_tomsgs();
+	
+	std::cout <<"the time is : "<< t1-t0<<std::endl;
 }
 
 void FMGPlanner::benchmarkOMPL()
@@ -1280,7 +1288,11 @@ void FMGPlanner::benchmarkOMPL()
 
   planning_interface::PlanningContextPtr context =
       planner_instance->getPlanningContext(planning_scene, req, res.error_code_);
+      double t0 = ros::Time::now();
   context->solve(res);
+  double t1 = ros::Time::now();
+
+  std::cout << "use time :" << t1-t0<<std::endl;
   if (res.error_code_.val != res.error_code_.SUCCESS)
   {
     ROS_ERROR("Could not compute plan successfully");
