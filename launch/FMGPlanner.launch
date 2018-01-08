@@ -34,6 +34,9 @@
     <param name="max_cubic_stepsize" value="$(arg max_cubic_stepsize)"/>
     <param name="only_look_Traj_mid_pos" value="$(arg only_look_Traj_mid_pos)"/>
     <param name="robotrange" value="$(arg robotrange)"/>
+    <param name="/planning_plugin" value="ompl_interface/OMPLPlanner"/>
+    <rosparam command="load" file="$(find lwa4p_moveit_config)/config/ompl_planning.yaml"/>
+
    
   </node>
 

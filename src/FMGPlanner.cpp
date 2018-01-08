@@ -3,7 +3,9 @@
 #include <chrono>
 #include "util_fmg.h"
 #include <moveit/move_group_interface/move_group.h>
+#include <moveit/planning_interface/planning_interface>
 #include <time.h>
+#include <moveit_msgs/kinematic_constraints/utils.h>
 
 int FMGPlanner::init()
 {
@@ -955,7 +957,7 @@ bool FMGPlanner::Traj_interp_tomsgs()
 
 bool FMGPlanner::Traj_validinterp_tomsgs()
 {
-	
+	moveit_msgs::DisplayTrajectory display_trajectory;
 	moveit_msgs::RobotTrajectory joint_solution = fmgplanner::toROSJointTrajectory(interpTraj, joint_names, 1.0);
   	ROS_INFO("Visualizing the trajectory");
   	display_trajectory.trajectory.push_back(joint_solution);
@@ -1224,6 +1226,78 @@ void FMGPlanner::plan_cartesianpath_validpath()
 	}
 }
 
+void FMGPlanner::benchmarkOMPL()
+{
+	planning_scene::PlanningScenePtr planning_scene(new planning_scene::PlanningScene(robot_model_);
+	boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager>> planner_plugin_loader;
+  	planning_interface::PlannerManagerPtr planner_instance;
+  	std::string planner_plugin_name;
+
+  	if (!node_handle_.getParam("planning_plugin", planner_plugin_name))
+    ROS_FATAL_STREAM("Could not find planner plugin name");
+  try
+  {
+    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>(
+        "moveit_core", "planning_interface::PlannerManager"));
+  }
+  catch (pluginlib::PluginlibException& ex)
+  {
+    ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
+  }
+  try
+  {
+    planner_instance.reset(planner_plugin_loader->createUnmanagedInstance(planner_plugin_name));
+    if (!planner_instance->initialize(robot_model_, node_handle_.getNamespace()))
+      ROS_FATAL_STREAM("Could not initialize planner instance");
+    ROS_INFO_STREAM("Using planning interface '" << planner_instance->getDescription() << "'");
+  }
+  catch (pluginlib::PluginlibException& ex)
+  {
+    const std::vector<std::string>& classes = planner_plugin_loader->getDeclaredClasses();
+    std::stringstream ss;
+    for (std::size_t i = 0; i < classes.size(); ++i)
+      ss << classes[i] << " ";
+    ROS_ERROR_STREAM("Exception while loading planner '" << planner_plugin_name << "': " << ex.what() << std::endl
+                                                         << "Available plugins: " << ss.str());
+  }
+
+
+  planning_interface::MotionPlanRequest req;
+  planning_interface::MotionPlanResponse res;
+  geometry_msgs::PoseStamped pose;
+  pose.header.frame_id = "world";
+  pose.pose.position.x = goalx;
+  pose.pose.position.y = goaly;
+  pose.pose.position.z = goalz;
+  pose.pose.orientation.w = 1.0;
+  std::vector<double> tolerance_pose(3, 0.01);
+  std::vector<double> tolerance_angle(3, 0.01);
+  req.group_name = "manipulator";
+  moveit_msgs::Constraints pose_goal =
+      kinematic_constraints::constructGoalConstraints("arm_6_link", pose, tolerance_pose, tolerance_angle);
+  req.goal_constraints.push_back(pose_goal);
+
+  planning_interface::PlanningContextPtr context =
+      planner_instance->getPlanningContext(planning_scene, req, res.error_code_);
+  context->solve(res);
+  if (res.error_code_.val != res.error_code_.SUCCESS)
+  {
+    ROS_ERROR("Could not compute plan successfully");
+    return ;
+  }
+
+  moveit_msgs::DisplayTrajectory display_trajectory;
+  ROS_INFO("Visualizing the trajectory");
+  moveit_msgs::MotionPlanResponse response;
+  res.getMessage(response);
+  display_trajectory.trajectory_start = response.trajectory_start;
+  display_trajectory.trajectory.push_back(response.trajectory);
+  traj_visualiser_.publish(display_trajectory);
+  return ;
+
+
+
+}
 void FMGPlanner::run()
 {
 	init();
@@ -1256,8 +1330,10 @@ void FMGPlanner::run()
 	}
 	else
 	{
-		return;
+		this->benchmarkOMPL();
+		
 	}
+	return;
 }
 
 int main(int argc, char **argv)

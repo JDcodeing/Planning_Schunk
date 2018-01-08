@@ -85,7 +85,7 @@ private:
   
 
 	// for visualisation
-	moveit_msgs::DisplayTrajectory display_trajectory;
+	//moveit_msgs::DisplayTrajectory display_trajectory;
 
 
 	// env bound 
@@ -211,6 +211,8 @@ private:
 	bool AddCartesianPoint(const Eigen::Vector3d &pre, const Eigen::Vector3d &after,moveit_msgs::RobotState & moveit_init, moveit_msgs::RobotState &moveit_res);
 	bool smoothBspline(std::vector<Eigen::Vector3d> &path, unsigned int maxSteps);
 	void rangelimit(Eigen::Vector3d &position);
+
+	void benchmarkOMPL();
 
 	//bool isMidFree(const Eigen::Vector3d& point);
 

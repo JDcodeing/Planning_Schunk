@@ -1599,6 +1599,7 @@ bool FMGPlanner::Traj_interp_tomsgs()
 	}
 	moveit_msgs::RobotTrajectory joint_solution = fmgplanner::toROSJointTrajectory(interpTraj, joint_names, 1.0);
   	ROS_INFO("Visualizing the trajectory");
+  	moveit_msgs::DisplayTrajectory display_trajectory;
   	display_trajectory.trajectory.push_back(joint_solution);
   	traj_visualiser_.publish(display_trajectory);
   	return true;
