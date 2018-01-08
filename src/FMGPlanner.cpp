@@ -443,6 +443,7 @@ void FMGPlanner::GenerateGaps_dynamic(Eigen::Vector3d cur, std::vector<mid_info>
 	generategaps_CurEnv(cur, result);
 	std::sort(result.begin(), result.end(),Mid_Greater);
 	result.insert(result.begin(), mid_info(goal,0,-1));
+	ROS_INFO_STREAM("final gaps size: " << result.size());
 
 }
 
@@ -777,12 +778,16 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 			const mid_info& onemid = GapSet[j];
 			Eigen::Vector3d position = onemid.pos;
 			// check if near
+			rangelimit(position);
 			if((position - goal).norm() < (cur - goal).norm())
 			{
 				// check if free and the shortest distance to obstacles
 				double segvalid = checkSegment_dis2obs(cur, position,closestpoint);
 				if(segvalid<0) // segvalid < 0 means it collides with obs
-				{continue;}
+				{
+					ROS_ERROR_STREAM("it collides with obs");
+					ROS_ERROR_STREAM(position[0]<<" "<<position[1]<<" "<<position[2]);
+					continue;}
 				
 				else if(segvalid >= max_obs) // find a valid midpoint
 				{
@@ -790,11 +795,13 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 					if(stepnum==0 && recomputenum>0) // when recomputing, find next valid midpoint
 					{
 						recomputenum--;
+						std::cout <<"######################### recomputenum"<<std::endl;
+						std::cout << position[0] <<" "<<position[1]<<" "<< position[2]<<std::endl;
 						continue;
 					}
 					else
 					{
-						rangelimit(position);
+						
 						Traj_mid_pos.push_back(position);
 						cur = position;
 						foundone = true;
@@ -810,7 +817,7 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 				{
 
 					//check next mid point
-					Eigen::Vector3d tmp;
+					/*Eigen::Vector3d tmp;
 					if(checkSegment_dis2obs(cur,closestpoint,tmp) && checkSegment_dis2obs(closestpoint,onemid.pos,tmp))
 					{	
 						rangelimit(closestpoint);
@@ -826,14 +833,17 @@ bool FMGPlanner::get_dynamic_mid_pos(const Eigen::Vector3d start, int recomputen
 					else
 					{
 						ROS_INFO_STREAM("segment too close to obs: " << segvalid<<" and failed to add one more");
-					}
-					
+					}*/
+					ROS_ERROR_STREAM("too close to obs");
+					ROS_ERROR_STREAM(position[0]<<" "<<position[1]<<" "<<position[2]);
 					continue;
 				}
 				
 			}
 			else
 			{ // check next mid point
+				ROS_ERROR_STREAM("not near to goal, the postion is ");
+				ROS_ERROR_STREAM(position[0]<<" "<<position[1]<<" "<<position[2]);
 				continue;
 			}
 		}
@@ -1202,13 +1212,15 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 void FMGPlanner::plan_cartesianpath_validpath()
 {
 	int trynum = 5;
-	for(double i = 0; i < trynum; i=i+1)
+	bool find = 0;
+	for(double i = 0; i < trynum; i=i+0.5)
 	{
 		if(findCartesianPath_my((int)floor(i)))
-		{
-			Traj_validinterp_tomsgs();
-			break;
-		}
+		{	find = 1;
+		Traj_validinterp_tomsgs();
+		//if(findCartesianPath_my((int)floor(i)))
+		}		
+		if(find) break;
 	}
 }
 
