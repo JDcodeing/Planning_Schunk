@@ -1285,6 +1285,7 @@ void FMGPlanner::benchmarkOMPL()
   moveit_msgs::Constraints pose_goal =
       kinematic_constraints::constructGoalConstraints("arm_6_link", pose, tolerance_pose, tolerance_angle);
   req.goal_constraints.push_back(pose_goal);
+  req.planner_id="RRTkConfigDefault";
 
   planning_interface::PlanningContextPtr context =
       planner_instance->getPlanningContext(planning_scene, req, res.error_code_);
