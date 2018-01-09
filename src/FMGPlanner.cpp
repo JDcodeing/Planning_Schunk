@@ -1231,7 +1231,7 @@ void FMGPlanner::plan_cartesianpath_validpath()
 {
 	int trynum = 5;
 	bool find = 0;
-	double t0 = ros::Time::now();
+	ros::Time t0= ros::Time::now();
 	for(double i = 0; i < trynum; i=i+0.5)
 	{
 		if(findCartesianPath_my((int)floor(i)))
@@ -1243,7 +1243,7 @@ void FMGPlanner::plan_cartesianpath_validpath()
 		}		
 		
 	}
-	double t1 = ros::Time::now();
+	ros::Time t1= ros::Time::now();
 	if(find) Traj_validinterp_tomsgs();
 	
 	std::cout <<"the time is : "<< t1-t0<<std::endl;
@@ -1305,9 +1305,9 @@ void FMGPlanner::benchmarkOMPL()
 
   planning_interface::PlanningContextPtr context =
       planner_instance->getPlanningContext(planning_scene, req, res.error_code_);
-      double t0 = ros::Time::now();
+      ros::Time t0= ros::Time::now();
   context->solve(res);
-  double t1 = ros::Time::now();
+  ros::Time t1= ros::Time::now();
 
   std::cout << "use time :" << t1-t0<<std::endl;
   if (res.error_code_.val != res.error_code_.SUCCESS)
