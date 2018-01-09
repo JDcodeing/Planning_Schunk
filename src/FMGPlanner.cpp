@@ -1301,6 +1301,7 @@ void FMGPlanner::benchmarkOMPL()
       kinematic_constraints::constructGoalConstraints("arm_6_link", pose, tolerance_pose, tolerance_angle);
   req.goal_constraints.push_back(pose_goal);
   req.planner_id="RRTkConfigDefault";
+  req.allowed_planning_time = 10.0;
 
   planning_interface::PlanningContextPtr context =
       planner_instance->getPlanningContext(planning_scene, req, res.error_code_);
