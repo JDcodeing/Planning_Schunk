@@ -5,6 +5,7 @@
 #include <moveit/move_group_interface/move_group.h>
 #include <moveit/planning_interface/planning_interface.h>
 #include <time.h>
+#include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/kinematic_constraints/utils.h>
 #include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
@@ -1232,7 +1233,7 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 
 }
 
-bool FMGPlanner::plan_cartesianpath_validpath(ros::Time &time)
+bool FMGPlanner::plan_cartesianpath_validpath(ros::Duration &time)
 {
 	int trynum = 5;
 	bool find = 0;
@@ -1249,11 +1250,12 @@ bool FMGPlanner::plan_cartesianpath_validpath(ros::Time &time)
 		
 	}
 	ros::Time t1= ros::Time::now();
-	if(find) //Traj_validinterp_tomsgs();
+	if(find) //
 	{
 		time = t1-t0;
+		Traj_validinterp_tomsgs();
 	}
-	
+	return find;
 	//std::cout <<"the time is : "<< t1-t0<<std::endl;
 }
 
@@ -1293,9 +1295,17 @@ void FMGPlanner::benchmarkOMPL()
                                                          << "Available plugins: " << ss.str());
   }
 
+  moveit_msgs::RobotState startmsg;
+  std::vector<double> startjoint(6,0);
+  robot_state::RobotState& robot_state_ = planning_scene_->getCurrentStateNonConst();
+  robot_state_.setJointGroupPositions(joint_model_group_,startjoint);
+  robot_state::robotStateToRobotStateMsg(robot_state_, startmsg);
+  
 
   planning_interface::MotionPlanRequest req;
   planning_interface::MotionPlanResponse res;
+  req.start_state = startmsg;
+
   geometry_msgs::PoseStamped pose;
   pose.header.frame_id = "world";
   pose.pose.position.x = goal(0);
@@ -1308,7 +1318,7 @@ void FMGPlanner::benchmarkOMPL()
   moveit_msgs::Constraints pose_goal =
       kinematic_constraints::constructGoalConstraints("arm_6_link", pose, tolerance_pose, tolerance_angle);
   req.goal_constraints.push_back(pose_goal);
-  req.start_state = 
+  
   req.planner_id="RRTkConfigDefault";
   req.allowed_planning_time = 10.0;
 
@@ -1362,7 +1372,7 @@ void FMGPlanner::run()
 	}
 	else if(this->choice == 4)
 	{
-		ros::Time time;
+		ros::Duration time;
 		this->plan_cartesianpath_validpath(time);
 	}
 	else if(this->choice==5){
@@ -1376,14 +1386,14 @@ void FMGPlanner::run()
 	return;
 }
 
-void FMGPlanner::toRosTrajectory(const std:vector<std::vector<double> >& points,
+void FMGPlanner::toRosTrajectory(const std::vector<std::vector<double> >& points,
                       robot_trajectory::RobotTrajectory &rt)
   {
   	robot_state::RobotState& robot_state_ = planning_scene_->getCurrentStateNonConst();
   	for(int i =0; i < points.size(); i++)
   	{
   		robot_state_.setJointGroupPositions(joint_model_group_, points[i]);
-  		rt.addSuffixWaypoint(robot_state_, 0.0)
+  		rt.addSuffixWayPoint(robot_state_, 0.0);
   	}
 
   	trajectory_processing::IterativeParabolicTimeParameterization time_param;
