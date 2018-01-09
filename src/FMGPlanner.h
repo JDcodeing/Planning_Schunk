@@ -213,7 +213,7 @@ private:
 	bool smoothBspline(std::vector<Eigen::Vector3d> &path, unsigned int maxSteps);
 	void rangelimit(Eigen::Vector3d &position);
 
-	void benchmarkOMPL();
+	void benchmarkOMPL(ros::Duration &time, bool display);
 	void toRosTrajectory(const std::vector<std::vector<double> >& points,
                       robot_trajectory::RobotTrajectory &rt);
 	void omplsetup();

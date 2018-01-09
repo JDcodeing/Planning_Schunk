@@ -1381,15 +1381,22 @@ void FMGPlanner::run()
 	else if(this->choice == 4)
 	{
 		ros::Duration time;
-		this->plan_cartesianpath_validpath(time);
+		this->plan_cartesianpath_validpath(time, true);
 	}
 	else if(this->choice==5){
 		this->test_dynamic();
 	}
-	else
+	else if(this->choice==6)
 	{
-		this->benchmarkOMPL();
+		ros::Duration time;
+		this->benchmarkOMPL(time, true);
 		
+	}
+	else 
+	{
+		int run_num;
+		node_handle_.getParam("benchmark_runnum",run_num);
+		this->rrt_vs_fmg(run_num);
 	}
 	return;
 }
