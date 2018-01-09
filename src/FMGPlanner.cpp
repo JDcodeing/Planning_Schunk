@@ -67,13 +67,13 @@ int FMGPlanner::init()
   	node_handle_.getParam("planchoice", choice);
   	node_handle_.getParam("improve_plantraj", improve);
   	node_handle_.getParam("max_toobs", max_obs);
-  	node_handle_.getParam("stepsize_cartesian", stepsize_cart);
+  	
   	node_handle_.getParam("IK_forward", IKsolve_forward);
   	node_handle_.getParam("smooth_tol", smooth_tolerance);
   	node_handle_.getParam("max_cubic_stepsize", max_cubic_stepsize);
-  	node_handle_.getParam("bSpline_maxstep", bSpline_maxstep);
   	node_handle_.getParam("only_look_Traj_mid_pos",only_look_Traj_mid_pos);
   	node_handle_.getParam("robotrange",robotrange);
+
   	
 
   	//random
@@ -624,7 +624,7 @@ bool FMGPlanner::smooth_traj()
 	//ROS_INFO_STREAM("smooth traj begin! the size is "<< initp_size);
 	double max_diff;
 	int invalidnum=0;
-	for(int i = initp_size-2; i >= 0; i--)
+	for(int i = initp_size-2; i > 0; i--)
 	{	
 		/*std::cout << "the "<< i <<" th smooth check: last values"<<std::endl;
 		for(int k = 0; k < last_values.size();k++)
@@ -987,7 +987,7 @@ bool FMGPlanner::AddCartesianPoint(const Eigen::Vector3d &pre, const Eigen::Vect
 bool FMGPlanner::GetMidIKSolution(const std::vector<Eigen::Vector3d> &mid_points)
 {
 	size_t mid_size = mid_points.size();
-	if(mid_size <1)
+	if(mid_size <2)
 	{
 		ROS_ERROR_STREAM("Mid Traj Size < 2 !!");
 		return false;
@@ -1157,14 +1157,26 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 	if(only_look_Traj_mid_pos) return false;
 
 	//ROS_INFO_STREAM("smoothBspline! size: "<< Traj_mid_pos.size());
-	if(smoothBspline(Traj_mid_pos,bSpline_maxstep))
+	int bsmooth;
+	node_handle_.getParam("ifbsmooth", bsmooth);
+	if(bsmooth) 
 	{
-		//ROS_INFO_STREAM("smoothBspline succeed! size: "<< Traj_mid_pos.size());
+		int bSpline_maxstep;
+		node_handle_.getParam("bSpline_maxstep", bSpline_maxstep);
+		smoothBspline(Traj_mid_pos, bSpline_maxstep);
 	}
+	
 	//ROS_INFO_STREAM("The initial Cartesian Path, state size: "<< Traj_mid_pos.size());
 
 	// interpolate the Cartesian path 
-	fmgplanner::interpolateCartesianPath(Traj_mid_pos, stepsize_cart);
+	int cartesianinterp;
+	node_handle_.getParam("cartesianinterp", cartesianinterp);
+	if(cartesianinterp)
+	{
+		double stepsize_cart;
+		node_handle_.getParam("stepsize_cartesian", stepsize_cart);
+		fmgplanner::interpolateCartesianPath(Traj_mid_pos, stepsize_cart);
+	}
 	
 	//ROS_INFO_STREAM("The interpolated Cartesian Path, state size: "<< Traj_mid_pos.size());
 
@@ -1178,6 +1190,7 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 	// if the difference between two sets of consecutive joint values is larger than "smooth_tolerance", recompute IK solution
 	// the process is done backward
 	// output : initpTraj
+	if(initpTraj.size()<2) return false;
 	bool smooth = smooth_traj();
 	/*if(smooth) 
 		ROS_INFO_STREAM("Smoothing Completed!");
@@ -1189,7 +1202,9 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 	//return false;
 	// get the trajectory via cubic interpolation
 	interpTraj.clear();
-	bool interp_suc = fmgplanner::cubic_interp(interpTraj, initpTraj,max_cubic_stepsize);
+	int ifcubic ;
+	node_handle_.getParam("ifcubic",ifcubic);
+	bool interp_suc = fmgplanner::cubic_interp(interpTraj, initpTraj,max_cubic_stepsize,ifcubic);
 	if(!interp_suc)
 	{
 		//ROS_ERROR_STREAM("Cubic interpolation failed!");

@@ -132,12 +132,10 @@ private:
 	std::vector<mid_info> pmids_ObsEnv;
 	int pmids_ObsEnv_size;
 	double max_obs;
-	double stepsize_cart;
 	std::vector<double> start_values;
 	int IKsolve_forward;
 	double smooth_tolerance;
 	double max_cubic_stepsize;
-	int bSpline_maxstep;
 	int only_look_Traj_mid_pos;
 	double robotrange;
 	

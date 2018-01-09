@@ -131,7 +131,7 @@ namespace fmgplanner
     return maxdiff;
   }
   bool cubic_interp(std::vector<std::vector<double> >& result, 
-            const std::vector<std::vector<double> >& pidpoints, const double max_diff_step)
+            const std::vector<std::vector<double> >& pidpoints, const double max_diff_step,bool cubic)
   {
     size_t pos_len = 0;
     size_t pointsize = pidpoints.size();
@@ -170,7 +170,7 @@ namespace fmgplanner
       if(pointsize<=2)
         s.set_points(index,Y,false); // linear interpolation
       else
-        s.set_points(index,Y,false); // cubic interpolation
+        s.set_points(index,Y,cubic); // cubic interpolation
 
       for(k =0; k<index.back()+1; k++)
       {
