@@ -1233,12 +1233,12 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 
 }
 
-bool FMGPlanner::plan_cartesianpath_validpath(ros::Duration &time)
+bool FMGPlanner::plan_cartesianpath_validpath(ros::Duration &time, bool display)
 {
-	int trynum = 5;
+	int trynum = 4;
 	bool find = 0;
 	ros::Time t0= ros::Time::now();
-	for(double i = 0; i < trynum; i=i+0.5)
+	for(double i = 0; i < trynum; i=i+0.25)
 	{
 		if(findCartesianPath_my((int)floor(i)))
 		{	
@@ -1253,47 +1253,17 @@ bool FMGPlanner::plan_cartesianpath_validpath(ros::Duration &time)
 	if(find) //
 	{
 		time = t1-t0;
-		Traj_validinterp_tomsgs();
+			if(display)
+			{
+				Traj_validinterp_tomsgs();
+			}
 	}
 	return find;
 	//std::cout <<"the time is : "<< t1-t0<<std::endl;
 }
 
-void FMGPlanner::benchmarkOMPL()
+bool FMGPlanner::benchmarkOMPL(ros::Duration &time, bool display)
 {
-	planning_scene::PlanningScenePtr planning_scene = planning_scene_monitor_->getPlanningScene();
-	//(new planning_scene::PlanningScene(kinematic_model_));
-	boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager>> planner_plugin_loader;
-  	planning_interface::PlannerManagerPtr planner_instance;
-  	std::string planner_plugin_name;
-
-  	if (!node_handle_.getParam("planning_plugin", planner_plugin_name))
-    ROS_FATAL_STREAM("Could not find planner plugin name");
-  try
-  {
-    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>(
-        "moveit_core", "planning_interface::PlannerManager"));
-  }
-  catch (pluginlib::PluginlibException& ex)
-  {
-    ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
-  }
-  try
-  {
-    planner_instance.reset(planner_plugin_loader->createUnmanagedInstance(planner_plugin_name));
-    if (!planner_instance->initialize(kinematic_model_, node_handle_.getNamespace()))
-      ROS_FATAL_STREAM("Could not initialize planner instance");
-    ROS_INFO_STREAM("Using planning interface '" << planner_instance->getDescription() << "'");
-  }
-  catch (pluginlib::PluginlibException& ex)
-  {
-    const std::vector<std::string>& classes = planner_plugin_loader->getDeclaredClasses();
-    std::stringstream ss;
-    for (std::size_t i = 0; i < classes.size(); ++i)
-      ss << classes[i] << " ";
-    ROS_ERROR_STREAM("Exception while loading planner '" << planner_plugin_name << "': " << ex.what() << std::endl
-                                                         << "Available plugins: " << ss.str());
-  }
 
   moveit_msgs::RobotState startmsg;
   std::vector<double> startjoint(6,0);
@@ -1328,13 +1298,15 @@ void FMGPlanner::benchmarkOMPL()
   context->solve(res);
   ros::Time t1= ros::Time::now();
 
-  std::cout << "use time :" << t1-t0<<std::endl;
+  //std::cout << "use time :" << t1-t0<<std::endl;
   if (res.error_code_.val != res.error_code_.SUCCESS)
   {
     ROS_ERROR("Could not compute plan successfully");
-    return ;
+    return false;
   }
-
+  time = t1-t0;
+  if(display)
+  {
   moveit_msgs::DisplayTrajectory display_trajectory;
   ROS_INFO("Visualizing the trajectory");
   moveit_msgs::MotionPlanResponse response;
@@ -1342,10 +1314,46 @@ void FMGPlanner::benchmarkOMPL()
   display_trajectory.trajectory_start = response.trajectory_start;
   display_trajectory.trajectory.push_back(response.trajectory);
   traj_visualiser_.publish(display_trajectory);
-  return ;
+  }
+  
+  return true ;
+}
 
+void FMGPlanner::omplsetup()
+{
+	planning_scene::PlanningScenePtr planning_scene = planning_scene_monitor_->getPlanningScene();
+	//(new planning_scene::PlanningScene(kinematic_model_));
+	boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager>> planner_plugin_loader;
+  	planning_interface::PlannerManagerPtr planner_instance;
+  	std::string planner_plugin_name;
 
-
+  	if (!node_handle_.getParam("planning_plugin", planner_plugin_name))
+    ROS_FATAL_STREAM("Could not find planner plugin name");
+  try
+  {
+    planner_plugin_loader.reset(new pluginlib::ClassLoader<planning_interface::PlannerManager>(
+        "moveit_core", "planning_interface::PlannerManager"));
+  }
+  catch (pluginlib::PluginlibException& ex)
+  {
+    ROS_FATAL_STREAM("Exception while creating planning plugin loader " << ex.what());
+  }
+  try
+  {
+    planner_instance.reset(planner_plugin_loader->createUnmanagedInstance(planner_plugin_name));
+    if (!planner_instance->initialize(kinematic_model_, node_handle_.getNamespace()))
+      ROS_FATAL_STREAM("Could not initialize planner instance");
+    ROS_INFO_STREAM("Using planning interface '" << planner_instance->getDescription() << "'");
+  }
+  catch (pluginlib::PluginlibException& ex)
+  {
+    const std::vector<std::string>& classes = planner_plugin_loader->getDeclaredClasses();
+    std::stringstream ss;
+    for (std::size_t i = 0; i < classes.size(); ++i)
+      ss << classes[i] << " ";
+    ROS_ERROR_STREAM("Exception while loading planner '" << planner_plugin_name << "': " << ex.what() << std::endl
+                                                         << "Available plugins: " << ss.str());
+  }
 }
 void FMGPlanner::run()
 {
@@ -1401,11 +1409,47 @@ void FMGPlanner::toRosTrajectory(const std::vector<std::vector<double> >& points
     
   }
 
-void FMGPlanner::ompl_vs_fmg(int num)
+void FMGPlanner::rrt_vs_fmg(int num)
 {
 	init();
 	loadObs("/home/azalea-linux/ws_moveit/src/planning_test/src/obs.scene",true);
 	addObstoScene();
+	//ompl RRT
+
+	omplsetup();
+	int failnum_rrt = 0;
+	ros::Duration time, suc_totaltime=0;
+	for(int i =0; i<num; i++)
+	{
+		if(benchmarkOMPL(time,false))
+		{
+			suc_totaltime += time;
+		}
+		else
+		{
+			failnum_rrt++;
+		}
+	}
+	int sucnum_rrt = num-failnum_rrt;
+	ROS_INFO_STREAM("rrt succeed "<< double(sucnum_rrt)/num<<" percent, average searching time: " <<double(suc_totaltime)/sucnum_rrt));
+
+	// fmg
+	int failnum_fmg = 0;
+	//ros::Duration time, suc_totaltime=0;
+	suc_totaltime = 0;
+	for(int i =0; i<num; i++)
+	{
+		if(plan_cartesianpath_validpath(time,false))
+		{
+			suc_totaltime += time;
+		}
+		else
+		{
+			failnum_fmg++;
+		}
+	}
+	int sucnum_fmg = num-failnum_fmg;
+	ROS_INFO_STREAM("fmg succeed "<< double(sucnum_fmg)/num<<" percent, average searching time: " <<double(suc_totaltime)/sucnum_fmg));
 
 
 }
