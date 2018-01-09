@@ -3,7 +3,6 @@
 #include <chrono>
 #include "util_fmg.h"
 #include <moveit/move_group_interface/move_group.h>
-#include <moveit/planning_interface/planning_interface.h>
 #include <time.h>
 #include <moveit/robot_trajectory/robot_trajectory.h>
 #include <moveit/kinematic_constraints/utils.h>
@@ -1262,7 +1261,7 @@ bool FMGPlanner::plan_cartesianpath_validpath(ros::Duration &time, bool display)
 	//std::cout <<"the time is : "<< t1-t0<<std::endl;
 }
 
-bool FMGPlanner::benchmarkOMPL(ros::Duration &time, bool display)
+bool FMGPlanner::benchmarkOMPL(ros::Duration &time,bool display)
 {
 
   moveit_msgs::RobotState startmsg;
@@ -1293,7 +1292,7 @@ bool FMGPlanner::benchmarkOMPL(ros::Duration &time, bool display)
   req.allowed_planning_time = 10.0;
 
   planning_interface::PlanningContextPtr context =
-      planner_instance->getPlanningContext(planning_scene, req, res.error_code_);
+      planner_instance->getPlanningContext(planning_scene_, req, res.error_code_);
       ros::Time t0= ros::Time::now();
   context->solve(res);
   ros::Time t1= ros::Time::now();
@@ -1324,7 +1323,7 @@ void FMGPlanner::omplsetup()
 	planning_scene::PlanningScenePtr planning_scene = planning_scene_monitor_->getPlanningScene();
 	//(new planning_scene::PlanningScene(kinematic_model_));
 	boost::scoped_ptr<pluginlib::ClassLoader<planning_interface::PlannerManager>> planner_plugin_loader;
-  	planning_interface::PlannerManagerPtr planner_instance;
+  	
   	std::string planner_plugin_name;
 
   	if (!node_handle_.getParam("planning_plugin", planner_plugin_name))
@@ -1389,6 +1388,8 @@ void FMGPlanner::run()
 	else if(this->choice==6)
 	{
 		ros::Duration time;
+		
+		omplsetup();
 		this->benchmarkOMPL(time, true);
 		
 	}
@@ -1422,15 +1423,14 @@ void FMGPlanner::rrt_vs_fmg(int num)
 	loadObs("/home/azalea-linux/ws_moveit/src/planning_test/src/obs.scene",true);
 	addObstoScene();
 	//ompl RRT
-
 	omplsetup();
 	int failnum_rrt = 0;
-	ros::Duration time, suc_totaltime=0;
+	ros::Duration time, sucrrt_totaltime(0.0);
 	for(int i =0; i<num; i++)
 	{
 		if(benchmarkOMPL(time,false))
 		{
-			suc_totaltime += time;
+			sucrrt_totaltime += time;
 		}
 		else
 		{
@@ -1438,17 +1438,17 @@ void FMGPlanner::rrt_vs_fmg(int num)
 		}
 	}
 	int sucnum_rrt = num-failnum_rrt;
-	ROS_INFO_STREAM("rrt succeed "<< double(sucnum_rrt)/num<<" percent, average searching time: " <<double(suc_totaltime)/sucnum_rrt));
-
+	std::cout <<"rrt succed "<<double(sucnum_rrt)/num<<" percent, average time: "<<sucrrt_totaltime.toSec()/sucnum_rrt << std::endl;
+	
 	// fmg
 	int failnum_fmg = 0;
 	//ros::Duration time, suc_totaltime=0;
-	suc_totaltime = 0;
+	ros::Duration sucfmg_totaltime(0.0);
 	for(int i =0; i<num; i++)
 	{
 		if(plan_cartesianpath_validpath(time,false))
 		{
-			suc_totaltime += time;
+			sucfmg_totaltime += time;
 		}
 		else
 		{
@@ -1456,8 +1456,8 @@ void FMGPlanner::rrt_vs_fmg(int num)
 		}
 	}
 	int sucnum_fmg = num-failnum_fmg;
-	ROS_INFO_STREAM("fmg succeed "<< double(sucnum_fmg)/num<<" percent, average searching time: " <<double(suc_totaltime)/sucnum_fmg));
-
+	std::cout <<"Fmg succed "<<double(sucnum_fmg)/num<<" percent, average time: "<<sucfmg_totaltime.toSec()/sucnum_fmg << std::endl;
+	
 
 }
 

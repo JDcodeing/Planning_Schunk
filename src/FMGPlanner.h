@@ -30,6 +30,8 @@
 #include <chrono>
 #include <cmath>
 #include <Eigen/Dense>
+#include <moveit/planning_interface/planning_interface.h>
+
 
 class mid_info
 {
@@ -138,6 +140,8 @@ private:
 	double max_cubic_stepsize;
 	int only_look_Traj_mid_pos;
 	double robotrange;
+
+	 planning_interface::PlannerManagerPtr planner_instance;
 	
 
 public:
@@ -213,7 +217,7 @@ private:
 	bool smoothBspline(std::vector<Eigen::Vector3d> &path, unsigned int maxSteps);
 	void rangelimit(Eigen::Vector3d &position);
 
-	void benchmarkOMPL(ros::Duration &time, bool display);
+	bool benchmarkOMPL(ros::Duration &time,bool display);
 	void toRosTrajectory(const std::vector<std::vector<double> >& points,
                       robot_trajectory::RobotTrajectory &rt);
 	void omplsetup();
