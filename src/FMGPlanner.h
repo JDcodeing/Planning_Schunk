@@ -154,10 +154,11 @@ public:
 	void findCartesianPath();
 	bool findCartesianPath_my(int recomputenum);
 	void run();
-	bool plan_cartesianpath_validpath(ros::Duration &time);
+	bool plan_cartesianpath_validpath(ros::Duration &time, bool dispaly);
 	int choice;
 
-	void ompl_vs_fmg(int num);
+	void rrt_vs_fmg(int num);
+
 
 private:
 	int init();
@@ -215,6 +216,7 @@ private:
 	void benchmarkOMPL();
 	void toRosTrajectory(const std::vector<std::vector<double> >& points,
                       robot_trajectory::RobotTrajectory &rt);
+	void omplsetup();
 
 
 	//bool isMidFree(const Eigen::Vector3d& point);
