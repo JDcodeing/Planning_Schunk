@@ -6,6 +6,7 @@
 #include <moveit/planning_interface/planning_interface.h>
 #include <time.h>
 #include <moveit/kinematic_constraints/utils.h>
+#include <moveit/trajectory_processing/iterative_time_parameterization.h>
 
 int FMGPlanner::init()
 {
@@ -49,7 +50,7 @@ int FMGPlanner::init()
 
 	//start state
 	const Eigen::Affine3d &current_state = robot_state_.getGlobalLinkTransform("arm_6_link");
-	start_state = current_state;
+	start_state_affine = current_state;
   	//ROS_INFO_STREAM("Translation: " << current_state.translation());
   	currentpos = current_state.translation();
   	start = currentpos;
@@ -958,7 +959,11 @@ bool FMGPlanner::Traj_interp_tomsgs()
 bool FMGPlanner::Traj_validinterp_tomsgs()
 {
 	moveit_msgs::DisplayTrajectory display_trajectory;
-	moveit_msgs::RobotTrajectory joint_solution = fmgplanner::toROSJointTrajectory(interpTraj, joint_names, 1.0);
+	robot_trajectory::RobotTrajectory rt(planning_scene_monitor_->getRobotModel(), "manipulator");
+	this->toRosTrajectory(interpTraj, rt);
+
+	moveit_msgs::RobotTrajectory joint_solution;
+	rt.getRobotTrajectoryMsg(joint_solution);
   	ROS_INFO("Visualizing the trajectory");
   	display_trajectory.trajectory.push_back(joint_solution);
   	traj_visualiser_.publish(display_trajectory);
@@ -1227,7 +1232,7 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 
 }
 
-void FMGPlanner::plan_cartesianpath_validpath()
+bool FMGPlanner::plan_cartesianpath_validpath(ros::Time &time)
 {
 	int trynum = 5;
 	bool find = 0;
@@ -1244,9 +1249,12 @@ void FMGPlanner::plan_cartesianpath_validpath()
 		
 	}
 	ros::Time t1= ros::Time::now();
-	if(find) Traj_validinterp_tomsgs();
+	if(find) //Traj_validinterp_tomsgs();
+	{
+		time = t1-t0;
+	}
 	
-	std::cout <<"the time is : "<< t1-t0<<std::endl;
+	//std::cout <<"the time is : "<< t1-t0<<std::endl;
 }
 
 void FMGPlanner::benchmarkOMPL()
@@ -1300,6 +1308,7 @@ void FMGPlanner::benchmarkOMPL()
   moveit_msgs::Constraints pose_goal =
       kinematic_constraints::constructGoalConstraints("arm_6_link", pose, tolerance_pose, tolerance_angle);
   req.goal_constraints.push_back(pose_goal);
+  req.start_state = 
   req.planner_id="RRTkConfigDefault";
   req.allowed_planning_time = 10.0;
 
@@ -1353,7 +1362,8 @@ void FMGPlanner::run()
 	}
 	else if(this->choice == 4)
 	{
-		this->plan_cartesianpath_validpath();
+		ros::Time time;
+		this->plan_cartesianpath_validpath(time);
 	}
 	else if(this->choice==5){
 		this->test_dynamic();
@@ -1364,6 +1374,30 @@ void FMGPlanner::run()
 		
 	}
 	return;
+}
+
+void FMGPlanner::toRosTrajectory(const std:vector<std::vector<double> >& points,
+                      robot_trajectory::RobotTrajectory &rt)
+  {
+  	robot_state::RobotState& robot_state_ = planning_scene_->getCurrentStateNonConst();
+  	for(int i =0; i < points.size(); i++)
+  	{
+  		robot_state_.setJointGroupPositions(joint_model_group_, points[i]);
+  		rt.addSuffixWaypoint(robot_state_, 0.0)
+  	}
+
+  	trajectory_processing::IterativeParabolicTimeParameterization time_param;
+	time_param.computeTimeStamps(rt, 1.0);
+    
+  }
+
+void FMGPlanner::ompl_vs_fmg(int num)
+{
+	init();
+	loadObs("/home/azalea-linux/ws_moveit/src/planning_test/src/obs.scene",true);
+	addObstoScene();
+
+
 }
 
 int main(int argc, char **argv)

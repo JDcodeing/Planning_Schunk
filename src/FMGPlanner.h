@@ -126,7 +126,7 @@ private:
 	// to compute IK
 	geometry_msgs::Pose pose_msg;
 
-	Eigen::Affine3d start_state;
+	Eigen::Affine3d start_state_affine;
 
 	// dynamic 
 	std::vector<mid_info> pmids_ObsEnv;
@@ -211,6 +211,8 @@ private:
 	void rangelimit(Eigen::Vector3d &position);
 
 	void benchmarkOMPL();
+	void toRosTrajectory(const std:vector<std::vector<double> >& points,
+                      robot_trajectory::RobotTrajectory &rt);
 
 	//bool isMidFree(const Eigen::Vector3d& point);
 

@@ -196,9 +196,6 @@ namespace fmgplanner
     {
       trajectory_msgs::JointTrajectoryPoint pt;
       pt.positions = *it;
-      pt.velocities.resize((*it).size(), 0.0);
-      pt.accelerations.resize((*it).size(), 0.0);
-      pt.effort.resize((*it).size(), 0.0);
       // set the time into the trajectory
       pt.time_from_start = ros::Duration(time_offset);
       // increment time
@@ -210,6 +207,7 @@ namespace fmgplanner
     return result;
 
   }
+
 
   void printJointState(const sensor_msgs::JointState &js)
   {
