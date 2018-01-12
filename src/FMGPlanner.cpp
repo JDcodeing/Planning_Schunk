@@ -1,6 +1,7 @@
 #include "FMGPlanner.h"
 #include <random>
 #include <chrono>
+#include <string>
 #include "util_fmg.h"
 #include <moveit/move_group_interface/move_group.h>
 #include <time.h>
@@ -956,17 +957,31 @@ bool FMGPlanner::Traj_interp_tomsgs()
   	return true;
 }
 
-bool FMGPlanner::Traj_validinterp_tomsgs()
+bool FMGPlanner::Traj_validinterp_tomsgs(bool display , double &length)
 {
 	moveit_msgs::DisplayTrajectory display_trajectory;
 	robot_trajectory::RobotTrajectory rt(planning_scene_monitor_->getRobotModel(), "manipulator");
 	this->toRosTrajectory(interpTraj, rt);
+	string filename = "result/trajecotries/fmg/traj"+ std::to_string(ros::Time::now().toSec())+".csv";
+  	ofstream myfile;
+	myfile.open(filename);
+	fmgplanner::write_path_tofile(&rt, myfile);
+	myfile.close();
+	length = fmgplanner::compute_length(&joint_solution, kinematic_model_, joint_model_group_,&robot_state_);
+	  	
 
-	moveit_msgs::RobotTrajectory joint_solution;
-	rt.getRobotTrajectoryMsg(joint_solution);
-  	ROS_INFO("Visualizing the trajectory");
-  	display_trajectory.trajectory.push_back(joint_solution);
-  	traj_visualiser_.publish(display_trajectory);
+	if(display)
+	{
+		moveit_msgs::RobotTrajectory joint_solution;
+		rt.getRobotTrajectoryMsg(joint_solution);
+	  	ROS_INFO("Visualizing the trajectory");
+	  	display_trajectory.trajectory.push_back(joint_solution);
+	  	traj_visualiser_.publish(display_trajectory);
+
+	  	robot_state::RobotState& robot_state_ = planning_scene_->getCurrentStateNonConst();
+		//double length = fmgplanner::compute_length(&joint_solution, kinematic_model_, joint_model_group_,&robot_state_);
+	  	ROS_INFO_STREAM("the length of path: "<< length);
+	}
   	return true;
   
 }
@@ -1232,13 +1247,17 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 
 }
 
-bool FMGPlanner::plan_cartesianpath_validpath(ros::Duration &time, bool display)
+bool FMGPlanner::plan_cartesianpath_validpath(ros::Duration &time, double & len, bool display)
 {
 	int trynum = 4;
 	bool find = 0;
 	ros::Time t0= ros::Time::now();
 	for(double i = 0; i < trynum; i=i+0.25)
 	{
+		pose_msg.orientation.x = fRand(-1,1);
+	   	pose_msg.orientation.y = fRand(-1,1);
+	    pose_msg.orientation.z = fRand(-1,1);
+	    pose_msg.orientation.w = fRand(-1,1);
 		if(findCartesianPath_my((int)floor(i)))
 		{	
 			find = 1;
@@ -1252,16 +1271,15 @@ bool FMGPlanner::plan_cartesianpath_validpath(ros::Duration &time, bool display)
 	if(find) //
 	{
 		time = t1-t0;
-			if(display)
-			{
-				Traj_validinterp_tomsgs();
-			}
+		
+		Traj_validinterp_tomsgs(display, len);
+		
 	}
 	return find;
 	//std::cout <<"the time is : "<< t1-t0<<std::endl;
 }
 
-bool FMGPlanner::benchmarkOMPL(ros::Duration &time,bool display)
+bool FMGPlanner::benchmarkOMPL(ros::Duration &time, double & length, bool display)
 {
 
   moveit_msgs::RobotState startmsg;
@@ -1304,6 +1322,14 @@ bool FMGPlanner::benchmarkOMPL(ros::Duration &time,bool display)
     return false;
   }
   time = t1-t0;
+
+  string filename = "result/trajecotries/ompl/traj"+ std::to_string(ros::Time::now().toSec())+".csv";
+  ofstream myfile;
+  myfile.open(filename);
+  fmgplanner::write_path_tofile(&response.trajectory, myfile);
+  myfile.close();
+  length = fmgplanner::compute_length(&response.trajectory, kinematic_model_, joint_model_group_,&robot_state_);
+
   if(display)
   {
   moveit_msgs::DisplayTrajectory display_trajectory;
@@ -1313,6 +1339,7 @@ bool FMGPlanner::benchmarkOMPL(ros::Duration &time,bool display)
   display_trajectory.trajectory_start = response.trajectory_start;
   display_trajectory.trajectory.push_back(response.trajectory);
   traj_visualiser_.publish(display_trajectory);
+  ROS_INFO_STREAM("the length of path: "<< length);
   }
   
   return true ;
@@ -1380,7 +1407,8 @@ void FMGPlanner::run()
 	else if(this->choice == 4)
 	{
 		ros::Duration time;
-		this->plan_cartesianpath_validpath(time, true);
+		double len;
+		this->plan_cartesianpath_validpath(time, len, true);
 	}
 	else if(this->choice==5){
 		this->test_dynamic();
@@ -1388,9 +1416,10 @@ void FMGPlanner::run()
 	else if(this->choice==6)
 	{
 		ros::Duration time;
+		double len;
 		
 		omplsetup();
-		this->benchmarkOMPL(time, true);
+		this->benchmarkOMPL(time, len, true);
 		
 	}
 	else 
@@ -1425,12 +1454,14 @@ void FMGPlanner::rrt_vs_fmg(int num)
 	//ompl RRT
 	omplsetup();
 	int failnum_rrt = 0;
+	double len,totallen=0;
 	ros::Duration time, sucrrt_totaltime(0.0);
 	for(int i =0; i<num; i++)
 	{
-		if(benchmarkOMPL(time,false))
+		if(benchmarkOMPL(time,len,false))
 		{
 			sucrrt_totaltime += time;
+			totallen += len;
 		}
 		else
 		{
@@ -1438,17 +1469,19 @@ void FMGPlanner::rrt_vs_fmg(int num)
 		}
 	}
 	int sucnum_rrt = num-failnum_rrt;
-	std::cout <<"rrt succed "<<double(sucnum_rrt)/num<<" percent, average time: "<<sucrrt_totaltime.toSec()/sucnum_rrt << std::endl;
-	
+	std::cout <<"rrt succed "<<double(sucnum_rrt)/num<<" percent, average time: "<<sucrrt_totaltime.toSec()/sucnum_rrt;
+	std::cout <<", average length: " << totallen/sucnum_rrt << std::endl;
 	// fmg
 	int failnum_fmg = 0;
 	//ros::Duration time, suc_totaltime=0;
 	ros::Duration sucfmg_totaltime(0.0);
+	double len, totallen = 0;
 	for(int i =0; i<num; i++)
 	{
-		if(plan_cartesianpath_validpath(time,false))
+		if(plan_cartesianpath_validpath(time, len, false))
 		{
 			sucfmg_totaltime += time;
+			totallen += len;
 		}
 		else
 		{
@@ -1456,7 +1489,8 @@ void FMGPlanner::rrt_vs_fmg(int num)
 		}
 	}
 	int sucnum_fmg = num-failnum_fmg;
-	std::cout <<"Fmg succed "<<double(sucnum_fmg)/num<<" percent, average time: "<<sucfmg_totaltime.toSec()/sucnum_fmg << std::endl;
+	std::cout <<"Fmg succed "<<double(sucnum_fmg)/num<<" percent, average time: "<<sucfmg_totaltime.toSec()/sucnum_fmg;
+	std::cout << ", average length: "<<totallen/sucnum_fmg << std::endl;
 	
 
 }

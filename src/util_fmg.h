@@ -182,7 +182,7 @@ namespace fmgplanner
 
 }
 
-  moveit_msgs::RobotTrajectory toROSJointTrajectory(const std::vector<std::vector<double> >& points,
+  moveit_msgs::RobotTrajectory toROSMSGJointTrajectory(const std::vector<std::vector<double> >& points,
                       const std::vector<std::string>& joint_names,
                       double time_delay)
   {
@@ -276,6 +276,68 @@ void toROSPoseVec(const std::vector<Eigen::Vector3d> posvec, std::vector<geometr
   }
 
 }
+
+void write_path_tofile(robot_trajectory::RobotTrajectory* robot_traj, ofstream& myfile)
+{
+  moveit_msgs::RobotTrajectory traj_msg;
+  robot_traj->getRobotTrajectoryMsg(traj_msg);
+  fmgplanner::write_path_tofile(&traj_msg , myfile);
+}
+
+void write_path_tofile(moveit_msgs::RobotTrajectory* traj_msg, ofstream& myfile)
+{
+  myfile <<"positions,,,,,,velocities,,,,,,accelerations,,,,,,effort,,,,,,time_from_start";
+  for(auto i:traj_msg->joint_trajectory.points)
+  {
+      for(auto j:i.positions)
+      {
+        myfile << j<<",";
+      }
+      for(auto j:i.velocities)
+      {
+        myfile << j<<",";
+      }
+      for(auto j:i.accelerations)
+      {
+        myfile << j<<",";
+      }
+      for(auto j:i.effort)
+      {
+        myfile << j<<",";
+      }
+      myfile << i.time_from_start<<"\n";
+      
+  }
+  
+}
+double compute_length(moveit_msgs::RobotTrajectory* traj_msg,
+                      robot_model::RobotModelPtr r_model,
+                      robot_model::JointModelGroup* j_group,
+                      robot_state::RobotStatePtr ref_state)
+{
+  robot_trajectory::RobotTrajectory robot_traj(r_model, j_group);
+  robot_traj.setRobotTrajectoryMsg(*ref_state, *traj_msg);
+  
+  double length = 0.0;
+  std::vector<Eigen::Vector3d> way_points;
+
+  for (int i = 0; i < robot_traj.getWayPointCount(); i++)
+  {  
+    const Eigen::Affine3d& ee_pose = robot_traj.getWayPoint(i).getGlobalLinkTransform("ee_link");
+    way_points.push_back(ee_pose.translation());
+  }
+
+  for (int i = 1; i < robot_traj.getWayPointCount(); i++)
+  {
+    Eigen::Vector3d distance = way_points[i] - way_points[i-1];
+    length += sqrt(distance.dot(distance));
+  }
+  
+  ROS_INFO("Way points number: %d", (int)robot_traj.getWayPointCount());
+  
+  return length;
+}
+
  /* void printJointState(const robot_state::RobotState &rs)
   {
     std::vector<double> jointvalues;

@@ -3,6 +3,7 @@
 #include <algorithm>    // std::lower_bound, std::upper_bound, std::sort
 #include <vector>       // std::vector
 #include <string>
+#include <fstream>
 #include <cmath>
 #include "spline.h"
 
@@ -54,8 +55,9 @@ Eigen::Vector3d Vector3dRand(Eigen::Vector3d vec, double min, double max)
 */
 void print(vector<double> a)
 {
-  for(int i = 0; i < a.size(); i++)
-    cout << a[i]<<" ";
+  //for(int i = 0; i < a.size(); i++)
+  for(auto i:a)
+    cout << i<<" ";
   cout << endl;
   return;
 }
@@ -122,6 +124,21 @@ bool cubic_interp(std::vector<std::vector<double> >& result,
 
 }
 
+void testpointer(double& a)
+{
+  std::cout << a << std::endl;
+  a = 4;
+
+}
+
+void printfile(ofstream& myfile)
+{
+  myfile << "This is the first cell,, in the first column.\n";
+      myfile << "a,b,c\n";
+      myfile << "c,s,v\n";
+      myfile << "1,2,3.456\n";
+      myfile << "semi,colon";
+}
 
 int main (int argc, char **argv) {
 
@@ -145,7 +162,22 @@ int main (int argc, char **argv) {
     }
     cout << endl;
   }*/
-  a.swap(b);
+  //a.swap(b);
   print(a);
+
+    double doublec = 10.2;
+    double &ref = doublec;
+    testpointer(doublec);
+    std::cout << doublec << std::endl;
+
+
+
+      ofstream myfile;
+      string name = "result/example" + std::to_string(2) + ".csv";
+      myfile.open (name);
+      printfile(myfile);
+      myfile.close();
+      
+
   return 0;
 }
