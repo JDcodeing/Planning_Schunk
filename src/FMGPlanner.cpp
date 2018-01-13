@@ -1281,7 +1281,7 @@ bool FMGPlanner::plan_cartesianpath_validpath(ros::Duration &time, double & len,
 	//std::cout <<"the time is : "<< t1-t0<<std::endl;
 }
 
-bool FMGPlanner::benchmarkOMPL(ros::Duration &time, double & length, bool display)
+bool FMGPlanner::benchmarkOMPL(ros::Duration &time, double & length, bool display, const std::string& range )
 {
 
   moveit_msgs::RobotState startmsg;
@@ -1308,7 +1308,7 @@ bool FMGPlanner::benchmarkOMPL(ros::Duration &time, double & length, bool displa
       kinematic_constraints::constructGoalConstraints("arm_6_link", pose, tolerance_pose, tolerance_angle);
   req.goal_constraints.push_back(pose_goal);
   
-  req.planner_id="RRTkConfigDefault";
+  req.planner_id="RRTkConfigDefault"+range;
   req.allowed_planning_time = 10.0;
 
   planning_interface::PlanningContextPtr context =
@@ -1466,22 +1466,30 @@ void FMGPlanner::rrt_vs_fmg(int num)
 	int failnum_rrt = 0;
 	double len,totallen_rrt=0;
 	ros::Duration time, sucrrt_totaltime(0.0);
-	for(int i =0; i<num; i++)
+	std::string ranges[] = {"01","03","05","08","10"};
+	for(auto range:ranges)
 	{
-		if(benchmarkOMPL(time,len,false))
+		totallen_rrt = 0;
+		failnum_rrt = 0;
+		for(int i =0; i<num; i++)
 		{
-			sucrrt_totaltime += time;
-			totallen_rrt += len;
+			if(benchmarkOMPL(time,len,false,range))
+			{
+				sucrrt_totaltime += time;
+				totallen_rrt += len;
+			}
+			else
+			{
+				failnum_rrt++;
+			}
 		}
-		else
-		{
-			failnum_rrt++;
-		}
+		int sucnum_rrt = num-failnum_rrt;
+		myfile << "run times: "<< num <<"; the range is: "<<range;
+		myfile <<"rrt succed "<<double(sucnum_rrt)/num<<" percent, average time: "<<sucrrt_totaltime.toSec()/sucnum_rrt;
+		myfile <<", average length: " << totallen_rrt/sucnum_rrt << std::endl;
+
 	}
-	int sucnum_rrt = num-failnum_rrt;
-	myfile << "run times: "<< num <<";";
-	myfile <<"rrt succed "<<double(sucnum_rrt)/num<<" percent, average time: "<<sucrrt_totaltime.toSec()/sucnum_rrt;
-	myfile <<", average length: " << totallen_rrt/sucnum_rrt << std::endl;
+	
 	// fmg
 	int failnum_fmg = 0;
 	//ros::Duration time, suc_totaltime=0;
