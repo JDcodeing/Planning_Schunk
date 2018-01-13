@@ -11,7 +11,8 @@
 #include <moveit_msgs/DisplayRobotState.h>
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit_msgs/ApplyPlanningScene.h>
-
+#include <iostream>
+#include <fstream>
 #include "eigen_ros.hpp"
 
 double fRand(double min, double max)
@@ -277,16 +278,9 @@ void toROSPoseVec(const std::vector<Eigen::Vector3d> posvec, std::vector<geometr
 
 }
 
-void write_path_tofile(robot_trajectory::RobotTrajectory* robot_traj, ofstream& myfile)
+void write_path_tofile(moveit_msgs::RobotTrajectory* traj_msg, std::ofstream& myfile)
 {
-  moveit_msgs::RobotTrajectory traj_msg;
-  robot_traj->getRobotTrajectoryMsg(traj_msg);
-  fmgplanner::write_path_tofile(&traj_msg , myfile);
-}
-
-void write_path_tofile(moveit_msgs::RobotTrajectory* traj_msg, ofstream& myfile)
-{
-  myfile <<"positions,,,,,,velocities,,,,,,accelerations,,,,,,effort,,,,,,time_from_start";
+  
   for(auto i:traj_msg->joint_trajectory.points)
   {
       for(auto j:i.positions)
@@ -310,10 +304,18 @@ void write_path_tofile(moveit_msgs::RobotTrajectory* traj_msg, ofstream& myfile)
   }
   
 }
+void write_path_tofile(robot_trajectory::RobotTrajectory* robot_traj,std::ofstream& myfile)
+{
+  moveit_msgs::RobotTrajectory traj_msg;
+  robot_traj->getRobotTrajectoryMsg(traj_msg);
+  fmgplanner::write_path_tofile(&traj_msg , myfile);
+}
+
+
 double compute_length(moveit_msgs::RobotTrajectory* traj_msg,
                       robot_model::RobotModelPtr r_model,
-                      robot_model::JointModelGroup* j_group,
-                      robot_state::RobotStatePtr ref_state)
+                      const robot_model::JointModelGroup* j_group,
+                      robot_state::RobotState* ref_state)
 {
   robot_trajectory::RobotTrajectory robot_traj(r_model, j_group);
   robot_traj.setRobotTrajectoryMsg(*ref_state, *traj_msg);
@@ -323,7 +325,7 @@ double compute_length(moveit_msgs::RobotTrajectory* traj_msg,
 
   for (int i = 0; i < robot_traj.getWayPointCount(); i++)
   {  
-    const Eigen::Affine3d& ee_pose = robot_traj.getWayPoint(i).getGlobalLinkTransform("ee_link");
+    const Eigen::Affine3d& ee_pose = robot_traj.getWayPoint(i).getGlobalLinkTransform("arm_6_link");
     way_points.push_back(ee_pose.translation());
   }
 

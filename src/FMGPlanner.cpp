@@ -962,23 +962,25 @@ bool FMGPlanner::Traj_validinterp_tomsgs(bool display , double &length)
 	moveit_msgs::DisplayTrajectory display_trajectory;
 	robot_trajectory::RobotTrajectory rt(planning_scene_monitor_->getRobotModel(), "manipulator");
 	this->toRosTrajectory(interpTraj, rt);
-	string filename = "result/trajecotries/fmg/traj"+ std::to_string(ros::Time::now().toSec())+".csv";
-  	ofstream myfile;
+	std::string filename = "/home/azalea-linux/ws_moveit/src/planning_test/src/result/trajectories/fmg/traj"+ std::to_string(ros::Time::now().toSec())+".csv";
+  	std::ofstream myfile;
 	myfile.open(filename);
 	fmgplanner::write_path_tofile(&rt, myfile);
 	myfile.close();
+	robot_state::RobotState& robot_state_ = planning_scene_->getCurrentStateNonConst();
+	moveit_msgs::RobotTrajectory joint_solution;
+	rt.getRobotTrajectoryMsg(joint_solution);
 	length = fmgplanner::compute_length(&joint_solution, kinematic_model_, joint_model_group_,&robot_state_);
 	  	
 
 	if(display)
 	{
-		moveit_msgs::RobotTrajectory joint_solution;
-		rt.getRobotTrajectoryMsg(joint_solution);
+		
 	  	ROS_INFO("Visualizing the trajectory");
 	  	display_trajectory.trajectory.push_back(joint_solution);
 	  	traj_visualiser_.publish(display_trajectory);
 
-	  	robot_state::RobotState& robot_state_ = planning_scene_->getCurrentStateNonConst();
+	  	
 		//double length = fmgplanner::compute_length(&joint_solution, kinematic_model_, joint_model_group_,&robot_state_);
 	  	ROS_INFO_STREAM("the length of path: "<< length);
 	}
@@ -1323,8 +1325,11 @@ bool FMGPlanner::benchmarkOMPL(ros::Duration &time, double & length, bool displa
   }
   time = t1-t0;
 
-  string filename = "result/trajecotries/ompl/traj"+ std::to_string(ros::Time::now().toSec())+".csv";
-  ofstream myfile;
+  moveit_msgs::MotionPlanResponse response;
+  res.getMessage(response);
+
+  std::string filename = "/home/azalea-linux/ws_moveit/src/planning_test/src/result/trajectories/ompl/traj"+ std::to_string(ros::Time::now().toSec())+".csv";
+  std::ofstream myfile;
   myfile.open(filename);
   fmgplanner::write_path_tofile(&response.trajectory, myfile);
   myfile.close();
@@ -1334,8 +1339,7 @@ bool FMGPlanner::benchmarkOMPL(ros::Duration &time, double & length, bool displa
   {
   moveit_msgs::DisplayTrajectory display_trajectory;
   ROS_INFO("Visualizing the trajectory");
-  moveit_msgs::MotionPlanResponse response;
-  res.getMessage(response);
+  
   display_trajectory.trajectory_start = response.trajectory_start;
   display_trajectory.trajectory.push_back(response.trajectory);
   traj_visualiser_.publish(display_trajectory);
@@ -1441,8 +1445,8 @@ void FMGPlanner::toRosTrajectory(const std::vector<std::vector<double> >& points
   		rt.addSuffixWayPoint(robot_state_, 0.0);
   	}
 
-  	trajectory_processing::IterativeParabolicTimeParameterization time_param;
-	time_param.computeTimeStamps(rt, 1.0);
+  	//trajectory_processing::IterativeParabolicTimeParameterization time_param;
+	//time_param.computeTimeStamps(rt, 1.0);
     
   }
 
@@ -1451,17 +1455,23 @@ void FMGPlanner::rrt_vs_fmg(int num)
 	init();
 	loadObs("/home/azalea-linux/ws_moveit/src/planning_test/src/obs.scene",true);
 	addObstoScene();
+
+	std::string filename = "/home/azalea-linux/ws_moveit/src/planning_test/src/result/result.log";
+	std::ofstream myfile;
+	myfile.open(filename,std::ios_base::app);
+
+  	
 	//ompl RRT
 	omplsetup();
 	int failnum_rrt = 0;
-	double len,totallen=0;
+	double len,totallen_rrt=0;
 	ros::Duration time, sucrrt_totaltime(0.0);
 	for(int i =0; i<num; i++)
 	{
 		if(benchmarkOMPL(time,len,false))
 		{
 			sucrrt_totaltime += time;
-			totallen += len;
+			totallen_rrt += len;
 		}
 		else
 		{
@@ -1469,19 +1479,20 @@ void FMGPlanner::rrt_vs_fmg(int num)
 		}
 	}
 	int sucnum_rrt = num-failnum_rrt;
-	std::cout <<"rrt succed "<<double(sucnum_rrt)/num<<" percent, average time: "<<sucrrt_totaltime.toSec()/sucnum_rrt;
-	std::cout <<", average length: " << totallen/sucnum_rrt << std::endl;
+	myfile << "run times: "<< num <<";";
+	myfile <<"rrt succed "<<double(sucnum_rrt)/num<<" percent, average time: "<<sucrrt_totaltime.toSec()/sucnum_rrt;
+	myfile <<", average length: " << totallen_rrt/sucnum_rrt << std::endl;
 	// fmg
 	int failnum_fmg = 0;
 	//ros::Duration time, suc_totaltime=0;
 	ros::Duration sucfmg_totaltime(0.0);
-	double len, totallen = 0;
+	double totallen_fmg = 0;
 	for(int i =0; i<num; i++)
 	{
 		if(plan_cartesianpath_validpath(time, len, false))
 		{
 			sucfmg_totaltime += time;
-			totallen += len;
+			totallen_fmg += len;
 		}
 		else
 		{
@@ -1489,8 +1500,9 @@ void FMGPlanner::rrt_vs_fmg(int num)
 		}
 	}
 	int sucnum_fmg = num-failnum_fmg;
-	std::cout <<"Fmg succed "<<double(sucnum_fmg)/num<<" percent, average time: "<<sucfmg_totaltime.toSec()/sucnum_fmg;
-	std::cout << ", average length: "<<totallen/sucnum_fmg << std::endl;
+	myfile << "run times: "<< num <<";";
+	myfile <<"Fmg succed "<<double(sucnum_fmg)/num<<" percent, average time: "<<sucfmg_totaltime.toSec()/sucnum_fmg;
+	myfile << ", average length: "<<totallen_fmg/sucnum_fmg << std::endl;
 	
 
 }

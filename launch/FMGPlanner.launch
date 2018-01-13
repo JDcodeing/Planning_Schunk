@@ -5,12 +5,12 @@
   <arg name="max_toobs" default="0.06" />
   <arg name="stepsize_cartesian" default="0.5" />
   <arg name="planchoice" default="7" />
-  <arg name="benchmark_runnum" default = "50" />
+  <arg name="benchmark_runnum" default = "100" />
   <arg name="improve_plantraj" default="1" />
   <arg name="IK_forward" default="1" />
   <arg name="smooth_tol" default="2.2" />
   <arg name="bSpline_maxstep" default = "1" />
-  <arg name="max_cubic_stepsize" default = "0.04" />
+  <arg name="max_cubic_stepsize" default = "0.1" />
   <arg name="only_look_Traj_mid_pos" default = "0" />
   <arg name="robotrange" default = "0.8" />
   <arg name="ifcubic" default = "1" />

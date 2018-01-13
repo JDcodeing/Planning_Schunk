@@ -1,0 +1,59 @@
+#sphere
+obs1
+0.1
+0.28 0.44 0.336
+
+#sphere
+obs2
+0.15
+0.28 0.08 0.6
+run times: 100;rrt succed 0.54 percent, average time: 4.39018, average length: 1.99918 (0.1)
+run times: 100;Fmg succed 1 percent, average time: 0.075611, average length: 2.93737
+
+
+run times: 100;rrt succed 0.65 percent, average time: 2.2527, average length: 1.67194 (0.3)
+run times: 100;Fmg succed 1 percent, average time: 0.0714356, average length: 3.35516
+
+run times: 100;rrt succed 0.78 percent, average time: 1.73931, average length: 1.72008 (0.5)
+
+run times: 100;rrt succed 0.8 percent, average time: 1.59557, average length: 1.64476 (0.8)
+run times: 100;Fmg succed 1 percent, average time: 0.0901118, average length: 2.53639
+
+run times: 100;rrt succed 0.85 percent, average time: 1.25895, average length: 1.59447 (1.0)
+run times: 100;Fmg succed 1 percent, average time: 0.0718468, average length: 3.46337
+
+
+#sphere
+obs1
+0.1
+0.28 0.44 0.336
+
+#sphere
+obs2
+0.1
+0.28 0.08 0.6
+
+#sphere
+obs3
+0.09
+0.424 -0.3 0.2
+
+#sphere
+obs4
+0.08
+0 -0.3 0.4
+run times: 100;rrt succed 0.92 percent, average time: 1.10211, average length: 1.68342(1.0)
+run times: 100;Fmg succed 0.86 percent, average time: 0.492129, average length: 1.42964
+
+run times: 100;rrt succed 0.87 percent, average time: 1.22712, average length: 1.44884(0.8)
+run times: 100;Fmg succed 0.89 percent, average time: 0.490298, average length: 1.64193
+
+run times: 100;rrt succed 0.79 percent, average time: 1.76145, average length: 1.65208(0.5)
+run times: 100;Fmg succed 0.87 percent, average time: 0.473362, average length: 1.54065
+
+run times: 100;rrt succed 0.71 percent, average time: 1.33909, average length: 1.46156(0.3)
+run times: 100;Fmg succed 0.89 percent, average time: 0.450878, average length: 1.60611
+
+run times: 100;rrt succed 0.52 percent, average time: 2.99049, average length: 1.41588(0.1)
+run times: 100;Fmg succed 0.9 percent, average time: 0.460016, average length: 1.46129
+

@@ -158,7 +158,7 @@ public:
 	void findCartesianPath();
 	bool findCartesianPath_my(int recomputenum);
 	void run();
-	bool plan_cartesianpath_validpath(ros::Duration &time, bool dispaly);
+	bool plan_cartesianpath_validpath(ros::Duration &time, double & len, bool display);
 	int choice;
 
 	void rrt_vs_fmg(int num);
@@ -205,8 +205,8 @@ private:
 	bool GetValidTraj();
 	bool checkValidTraj(double fic, int& i);
 	//bool checkValidTraj(double fic, std::vector<unsigned int> &invalid_index);
-	bool Traj_validinterp_tomsgs();
-
+	bool Traj_validinterp_tomsgs(bool display , double &length);
+	
 	void print_waypoints(const std::vector<geometry_msgs::Pose> &waypoints);
 	double checkSegment_dis2obs(const Eigen::Vector3d& con, const Eigen::Vector3d& point, Eigen::Vector3d & closepoint);
 	void generategaps_ObsEnv(std::vector<mid_info>& result);
@@ -217,7 +217,7 @@ private:
 	bool smoothBspline(std::vector<Eigen::Vector3d> &path, unsigned int maxSteps);
 	void rangelimit(Eigen::Vector3d &position);
 
-	bool benchmarkOMPL(ros::Duration &time,bool display);
+	bool benchmarkOMPL(ros::Duration &time, double & length, bool display);
 	void toRosTrajectory(const std::vector<std::vector<double> >& points,
                       robot_trajectory::RobotTrajectory &rt);
 	void omplsetup();
