@@ -4,7 +4,7 @@
   <arg name="goalz" default="0.056" />
   <arg name="max_toobs" default="0.06" />
   <arg name="stepsize_cartesian" default="0.5" />
-  <arg name="planchoice" default="7" />
+  <arg name="planchoice" default="4" />
   <arg name="benchmark_runnum" default = "100" />
   <arg name="improve_plantraj" default="1" />
   <arg name="IK_forward" default="1" />
@@ -14,6 +14,9 @@
   <arg name="only_look_Traj_mid_pos" default = "0" />
   <arg name="robotrange" default = "0.8" />
   <arg name="ifcubic" default = "1" />
+  <arg name="testompl" default = "0" />
+  <arg name="testfmg" default = "1" />
+  
   
 
  
@@ -35,10 +38,12 @@
     <param name="smooth_tol" value="$(arg smooth_tol)"/>
     <param name="bSpline_maxstep" value="$(arg bSpline_maxstep)"/>
     <param name="max_cubic_stepsize" value="$(arg max_cubic_stepsize)"/>
+    <param name="ifcubic" value="$(arg ifcubic)"/>
+    <param name="testompl" value="$(arg testompl)"/>
+    <param name="testfmg" value="$(arg testfmg)"/>
     <param name="only_look_Traj_mid_pos" value="$(arg only_look_Traj_mid_pos)"/>
     <param name="robotrange" value="$(arg robotrange)"/>
     <param name="/planning_plugin" value="ompl_interface/OMPLPlanner"/>
-    <param name="ifcubic" value="$(arg ifcubic)"/>
     <rosparam command="load" file="$(find lwa4p_moveit_config)/config/ompl_planning.yaml"/>
 
    

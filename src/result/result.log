@@ -57,3 +57,113 @@ run times: 100;Fmg succed 0.89 percent, average time: 0.450878, average length: 
 run times: 100;rrt succed 0.52 percent, average time: 2.99049, average length: 1.41588(0.1)
 run times: 100;Fmg succed 0.9 percent, average time: 0.460016, average length: 1.46129
 
+#sphere
+obs1
+0.1
+0.28 0.44 0.336
+
+#sphere
+obs2
+0.1
+0.28 0.08 0.6
+
+#sphere
+obs3
+0.09
+0.424 -0.3 0.2
+
+#sphere
+obs4
+0.08
+0 -0.3 0.4
+
+#sphere
+obs5
+0.1
+0.4 0.28 0.5
+
+#use rrt-connect
+run times: 100; the range is: 01rrt succed 1 percent, average time: 0.115903, average length: 2.03363
+run times: 100; the range is: 03rrt succed 1 percent, average time: 0.243639, average length: 1.98767
+run times: 100; the range is: 05rrt succed 1 percent, average time: 0.377768, average length: 1.92636
+run times: 100; the range is: 08rrt succed 1 percent, average time: 0.49682, average length: 2.11601
+run times: 100; the range is: 10rrt succed 1 percent, average time: 0.616942, average length: 1.90597
+
+
+run times: 100;Fmg succed 0.83 percent, average time: 0.56742, average length: 1.45773
+run times: 100; the range is: 01; rrt succed 0.31 percent, average time: 3.45395, average length: 2.08496
+run times: 100; the range is: 03; rrt succed 0.61 percent, average time: 4.33745, average length: 1.49136
+run times: 100; the range is: 05; rrt succed 0.77 percent, average time: 5.35499, average length: 1.79234
+run times: 100; the range is: 08; rrt succed 0.73 percent, average time: 7.4162, average length: 1.50257
+run times: 100; the range is: 10; rrt succed 0.82 percent, average time: 8.0956, average length: 2.0316
+run times: 100;Fmg succed 0.8 percent, average time: 0.871838, average length: 1.44041
+
+#sphere
+obs2
+0.2
+0.28 0.08 0.6
+run times: 100; the range is: 01; rrt succed 0.63 percent, average time: 4.29573, average length: 1.58655
+run times: 100; the range is: 03; rrt succed 0.82 percent, average time: 3.36913, average length: 1.55842
+run times: 100; the range is: 05; rrt succed 0.93 percent, average time: 2.17249, average length: 1.57646
+run times: 100; the range is: 08; rrt succed 0.98 percent, average time: 1.90498, average length: 1.58785
+run times: 100; the range is: 10; rrt succed 0.99 percent, average time: 1.74056, average length: 1.60565
+run times: 100;Fmg succed 1 percent, average time: 0.386128, average length: 3.64313
+run times: 100; the range is: 01; rrt succed 0.26 percent, average time: 5.76896, average length: 1.49204
+run times: 100; the range is: 03; rrt succed 0.68 percent, average time: 3.09239, average length: 1.99301
+run times: 100; the range is: 05; rrt succed 0.67 percent, average time: 3.01359, average length: 1.89278
+run times: 100; the range is: 08; rrt succed 0.74 percent, average time: 2.51715, average length: 1.68713
+run times: 100; the range is: 10; rrt succed 0.81 percent, average time: 2.25305, average length: 1.89641
+run times: 100; the range is: 01; rrt succed 0 percent, average time: -nan, average length: -nan
+run times: 100; the range is: 03; rrt succed 0 percent, average time: -nan, average length: -nan
+run times: 100; the range is: 05; rrt succed 0 percent, average time: -nan, average length: -nan
+run times: 100; the range is: 08; rrt succed 0 percent, average time: -nan, average length: -nan
+run times: 100; the range is: 10; rrt succed 0 percent, average time: -nan, average length: -nan
+
+8 obs:
+#sphere
+obs1
+0.1
+0.28 0.44 0.336
+
+#sphere
+obs2
+0.17
+0.28 0.08 0.6
+
+#sphere
+obs3
+0.09
+0.424 -0.3 0.2
+
+#sphere
+obs4
+0.09
+0.14 -0.54 0.3
+
+#sphere
+obs5
+0.12
+-0.35 0.4 0.4
+
+#sphere
+obs6
+0.09
+0.05 -0.3 0.8
+
+#sphere
+obs7
+0.13
+0.6 0.12 0.65
+
+#sphere
+obs8
+0.2
+-0.4 -0.1 0.2
+
+
+run times: 100; the range is: 01; rrt succed 0.16 percent, average time: 7.52059, average length: 1.94097
+run times: 100; the range is: 03; rrt succed 0.51 percent, average time: 4.19605, average length: 1.82049
+run times: 100; the range is: 05; rrt succed 0.64 percent, average time: 3.80664, average length: 1.63232
+run times: 100; the range is: 08; rrt succed 0.69 percent, average time: 3.13369, average length: 1.71392
+run times: 100; the range is: 10; rrt succed 0.76 percent, average time: 2.98562, average length: 1.79482
+run times: 100;Fmg succed 0.89 percent, average time: 0.708472, average length: 1.43726

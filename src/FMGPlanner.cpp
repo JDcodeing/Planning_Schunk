@@ -1308,7 +1308,9 @@ bool FMGPlanner::benchmarkOMPL(ros::Duration &time, double & length, bool displa
       kinematic_constraints::constructGoalConstraints("arm_6_link", pose, tolerance_pose, tolerance_angle);
   req.goal_constraints.push_back(pose_goal);
   
-  req.planner_id="RRTkConfigDefault"+range;
+  std::string planner = "RRTkConfig"+range;
+  std::cout << planner <<std::endl;
+  req.planner_id=planner;
   req.allowed_planning_time = 10.0;
 
   planning_interface::PlanningContextPtr context =
@@ -1423,7 +1425,7 @@ void FMGPlanner::run()
 		double len;
 		
 		omplsetup();
-		this->benchmarkOMPL(time, len, true);
+		this->benchmarkOMPL(time, len, true,"01");
 		
 	}
 	else 
@@ -1452,15 +1454,19 @@ void FMGPlanner::toRosTrajectory(const std::vector<std::vector<double> >& points
 
 void FMGPlanner::rrt_vs_fmg(int num)
 {
-	init();
-	loadObs("/home/azalea-linux/ws_moveit/src/planning_test/src/obs.scene",true);
-	addObstoScene();
+	//init();
+	//loadObs("/home/azalea-linux/ws_moveit/src/planning_test/src/obs.scene",true);
+	//addObstoScene();
 
 	std::string filename = "/home/azalea-linux/ws_moveit/src/planning_test/src/result/result.log";
 	std::ofstream myfile;
 	myfile.open(filename,std::ios_base::app);
+	int testompl, testfmg;
+	node_handle_.getParam("testompl",testompl);
+	node_handle_.getParam("testfmg",testfmg);
+	std::cout << testompl << testfmg<<std::endl;
 
-  	
+  	if(testompl){
 	//ompl RRT
 	omplsetup();
 	int failnum_rrt = 0;
@@ -1469,7 +1475,9 @@ void FMGPlanner::rrt_vs_fmg(int num)
 	std::string ranges[] = {"01","03","05","08","10"};
 	for(auto range:ranges)
 	{
+		ros::Duration sucrrt_totaltime(0.0);
 		totallen_rrt = 0;
+		//sucrrt_totaltime = 0;
 		failnum_rrt = 0;
 		for(int i =0; i<num; i++)
 		{
@@ -1484,19 +1492,21 @@ void FMGPlanner::rrt_vs_fmg(int num)
 			}
 		}
 		int sucnum_rrt = num-failnum_rrt;
-		myfile << "run times: "<< num <<"; the range is: "<<range;
+		myfile << "run times: "<< num <<"; the range is: "<<range<<"; ";
 		myfile <<"rrt succed "<<double(sucnum_rrt)/num<<" percent, average time: "<<sucrrt_totaltime.toSec()/sucnum_rrt;
 		myfile <<", average length: " << totallen_rrt/sucnum_rrt << std::endl;
 
 	}
-	
+	}
+	if(testfmg){
 	// fmg
 	int failnum_fmg = 0;
 	//ros::Duration time, suc_totaltime=0;
-	ros::Duration sucfmg_totaltime(0.0);
-	double totallen_fmg = 0;
+	ros::Duration time,sucfmg_totaltime(0.0);
+	double len,totallen_fmg = 0;
 	for(int i =0; i<num; i++)
 	{
+		std::cout << "run num: "<<i << i<< std::endl;
 		if(plan_cartesianpath_validpath(time, len, false))
 		{
 			sucfmg_totaltime += time;
@@ -1511,6 +1521,7 @@ void FMGPlanner::rrt_vs_fmg(int num)
 	myfile << "run times: "<< num <<";";
 	myfile <<"Fmg succed "<<double(sucnum_fmg)/num<<" percent, average time: "<<sucfmg_totaltime.toSec()/sucnum_fmg;
 	myfile << ", average length: "<<totallen_fmg/sucnum_fmg << std::endl;
+}
 	
 
 }
