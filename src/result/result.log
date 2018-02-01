@@ -167,3 +167,33 @@ run times: 100; the range is: 05; rrt succed 0.64 percent, average time: 3.80664
 run times: 100; the range is: 08; rrt succed 0.69 percent, average time: 3.13369, average length: 1.71392
 run times: 100; the range is: 10; rrt succed 0.76 percent, average time: 2.98562, average length: 1.79482
 run times: 100;Fmg succed 0.89 percent, average time: 0.708472, average length: 1.43726
+
+----------------------------------------------------update lazyprm---------------
+1
+run times: 100; rrt succed 1 percent, average time: 1.00151, average length: 2.51954
+
+2
+run times: 100; rrt succed 1 percent, average time: 2.00135, average length: 2.24946
+
+4
+run times: 100; rrt succed 1 percent, average time: 2.00156, average length: 2.19696
+
+5
+run times: 100; rrt succed 1 percent, average time: 2.00116, average length: 2.08952
+
+8
+run times: 100; rrt succed 1 percent, average time: 2.00212, average length: 2.12782
+
+
+____________________________________________________________update_________________________
+
+run times: 100; lazyprm succed 0 percent, average time: -nan, average length: -nan
+run times: 100; lazyprm succed 0 percent, average time: -nan, average length: -nan
+run times: 100; the range is: 01; rrt succed 0 percent, average time: -nan, average length: -nan
+run times: 100; the range is: 03; rrt succed 0 percent, average time: -nan, average length: -nan
+run times: 100; the range is: 05; rrt succed 0 percent, average time: -nan, average length: -nan
+run times: 100; the range is: 08; rrt succed 0 percent, average time: -nan, average length: -nan
+run times: 100; the range is: 10; rrt succed 0 percent, average time: -nan, average length: -nan
+run times: 100;Fmg succed 0 percent, average time: -nan, average length: -nan
+run times: 100;Fmg succed 0 percent, average time: -nan, average length: -nan
+run times: 100;Fmg succed 0 percent, average time: -nan, average length: -nan

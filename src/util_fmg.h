@@ -150,10 +150,13 @@ namespace fmgplanner
     std::vector<double> index;
     index.reserve(pointsize);
     index.push_back(0);
+    //fmgplanner::printtraj(pidpoints);
     for(size_t i = 1; i < pointsize; i++)
     {
       maxdiff = max_diff(pidpoints[i],pidpoints[i-1]);
-      step += (int)floor(maxdiff/max_diff_step+0.5);
+      std::cout << maxdiff << std::endl;
+      step += (int)floor(maxdiff/max_diff_step+1);
+      
       index.push_back(step);
     }
 

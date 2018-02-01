@@ -218,6 +218,8 @@ private:
 	void rangelimit(Eigen::Vector3d &position);
 
 	bool benchmarkOMPL(ros::Duration &time, double & length, bool display, const std::string& range);
+	bool benchmarkOMPL_PRM(ros::Duration &time, double & length, bool display, const std::string& range);
+	
 	void toRosTrajectory(const std::vector<std::vector<double> >& points,
                       robot_trajectory::RobotTrajectory &rt);
 	void omplsetup();

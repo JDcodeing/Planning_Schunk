@@ -1,10 +1,10 @@
 <launch>
-  <arg name="goalx" default="0.56" />
-  <arg name="goaly" default="0.16" />
+  <arg name="goalx" default="-0.6" />
+  <arg name="goaly" default="0.06" />
   <arg name="goalz" default="0.056" />
   <arg name="max_toobs" default="0.06" />
   <arg name="stepsize_cartesian" default="0.5" />
-  <arg name="planchoice" default="4" />
+  <arg name="planchoice" default="3" />
   <arg name="benchmark_runnum" default = "100" />
   <arg name="improve_plantraj" default="1" />
   <arg name="IK_forward" default="1" />
@@ -16,6 +16,8 @@
   <arg name="ifcubic" default = "1" />
   <arg name="testompl" default = "0" />
   <arg name="testfmg" default = "1" />
+  <arg name="testprm" default = "0" />
+  <arg name="writetraj" default = "0" />
   
   
 
@@ -40,7 +42,9 @@
     <param name="max_cubic_stepsize" value="$(arg max_cubic_stepsize)"/>
     <param name="ifcubic" value="$(arg ifcubic)"/>
     <param name="testompl" value="$(arg testompl)"/>
-    <param name="testfmg" value="$(arg testfmg)"/>
+     <param name="testfmg" value="$(arg testfmg)"/>
+    <param name="writetraj" value="$(arg writetraj)"/>
+    <param name="testprm" value="$(arg testprm)"/>
     <param name="only_look_Traj_mid_pos" value="$(arg only_look_Traj_mid_pos)"/>
     <param name="robotrange" value="$(arg robotrange)"/>
     <param name="/planning_plugin" value="ompl_interface/OMPLPlanner"/>

@@ -932,6 +932,7 @@ bool FMGPlanner::checkValidTraj(double fic, int &invalid_index)
 	int TrajSize = interpTraj.size();
 
 	int step = TrajSize*fic;
+	if(step<1) step = 1;
 	//step = 1;
 	//std::cout << "TrajSize: "<< TrajSize<<" and step: "<<step << std::endl;
 	//robot_state::RobotState& kinematic_state = planning_scene_->getCurrentStateNonConst();
@@ -962,11 +963,16 @@ bool FMGPlanner::Traj_validinterp_tomsgs(bool display , double &length)
 	moveit_msgs::DisplayTrajectory display_trajectory;
 	robot_trajectory::RobotTrajectory rt(planning_scene_monitor_->getRobotModel(), "manipulator");
 	this->toRosTrajectory(interpTraj, rt);
+	int writetraj ;
+	node_handle_.getParam("writetraj",writetraj);
+	if(writetraj){
 	std::string filename = "/home/azalea-linux/ws_moveit/src/planning_test/src/result/trajectories/fmg/traj"+ std::to_string(ros::Time::now().toSec())+".csv";
   	std::ofstream myfile;
 	myfile.open(filename);
 	fmgplanner::write_path_tofile(&rt, myfile);
 	myfile.close();
+	
+	}
 	robot_state::RobotState& robot_state_ = planning_scene_->getCurrentStateNonConst();
 	moveit_msgs::RobotTrajectory joint_solution;
 	rt.getRobotTrajectoryMsg(joint_solution);
@@ -1229,10 +1235,10 @@ bool FMGPlanner::findCartesianPath_my(int recomputenum)
 	bool interp_suc = fmgplanner::cubic_interp(interpTraj, initpTraj,max_cubic_stepsize,ifcubic);
 	if(!interp_suc)
 	{
-		//ROS_ERROR_STREAM("Cubic interpolation failed!");
+		ROS_ERROR_STREAM("Cubic interpolation failed!");
 		return false;
 	}
-
+	ROS_INFO_STREAM("Cubic interpolation SUCCESS!");
 	// check if the trajectory is valid ; stepsize = fic * interpTraj.size()
 	int invalidind;
 	bool traj_valid = checkValidTraj(0.05, invalidind);
@@ -1329,12 +1335,90 @@ bool FMGPlanner::benchmarkOMPL(ros::Duration &time, double & length, bool displa
 
   moveit_msgs::MotionPlanResponse response;
   res.getMessage(response);
-
+  int writetraj ;
+  node_handle_.getParam("writetraj",writetraj);
+  if(writetraj)
+  {
   std::string filename = "/home/azalea-linux/ws_moveit/src/planning_test/src/result/trajectories/ompl/traj"+ std::to_string(ros::Time::now().toSec())+".csv";
+  std::ofstream myfile;
+  myfile.open(filename);
+  
+  fmgplanner::write_path_tofile(&response.trajectory, myfile);
+  myfile.close();
+  }
+  length = fmgplanner::compute_length(&response.trajectory, kinematic_model_, joint_model_group_,&robot_state_);
+
+  if(display)
+  {
+  moveit_msgs::DisplayTrajectory display_trajectory;
+  ROS_INFO("Visualizing the trajectory");
+  
+  display_trajectory.trajectory_start = response.trajectory_start;
+  display_trajectory.trajectory.push_back(response.trajectory);
+  traj_visualiser_.publish(display_trajectory);
+  ROS_INFO_STREAM("the length of path: "<< length);
+  }
+  
+  return true ;
+}
+
+bool FMGPlanner::benchmarkOMPL_PRM(ros::Duration &time, double & length, bool display, const std::string& range )
+{
+
+  moveit_msgs::RobotState startmsg;
+  std::vector<double> startjoint(6,0);
+  robot_state::RobotState& robot_state_ = planning_scene_->getCurrentStateNonConst();
+  robot_state_.setJointGroupPositions(joint_model_group_,startjoint);
+  robot_state::robotStateToRobotStateMsg(robot_state_, startmsg);
+  
+
+  planning_interface::MotionPlanRequest req;
+  planning_interface::MotionPlanResponse res;
+  req.start_state = startmsg;
+
+  geometry_msgs::PoseStamped pose;
+  pose.header.frame_id = "world";
+  pose.pose.position.x = goal(0);
+  pose.pose.position.y = goal(1);
+  pose.pose.position.z = goal(2);
+  pose.pose.orientation.w = 1.0;
+  std::vector<double> tolerance_pose(3, 0.01);
+  std::vector<double> tolerance_angle(3, 0.01);
+  req.group_name = "manipulator";
+  moveit_msgs::Constraints pose_goal =
+      kinematic_constraints::constructGoalConstraints("arm_6_link", pose, tolerance_pose, tolerance_angle);
+  req.goal_constraints.push_back(pose_goal);
+  
+  std::string planner = "lazyPRMdefault";
+  std::cout << planner <<std::endl;
+  req.planner_id=planner;
+  req.allowed_planning_time = 2.0;
+
+  planning_interface::PlanningContextPtr context =
+      planner_instance->getPlanningContext(planning_scene_, req, res.error_code_);
+      ros::Time t0= ros::Time::now();
+  context->solve(res);
+  ros::Time t1= ros::Time::now();
+
+  //std::cout << "use time :" << t1-t0<<std::endl;
+  if (res.error_code_.val != res.error_code_.SUCCESS)
+  {
+    ROS_ERROR("Could not compute plan successfully");
+    return false;
+  }
+  time = t1-t0;
+
+  moveit_msgs::MotionPlanResponse response;
+  res.getMessage(response);
+  int writetraj ;
+  node_handle_.getParam("writetraj",writetraj);
+  if(writetraj){
+  std::string filename = "/home/azalea-linux/ws_moveit/src/planning_test/src/result/trajectories/ompl_prm/traj"+ std::to_string(ros::Time::now().toSec())+".csv";
   std::ofstream myfile;
   myfile.open(filename);
   fmgplanner::write_path_tofile(&response.trajectory, myfile);
   myfile.close();
+	}
   length = fmgplanner::compute_length(&response.trajectory, kinematic_model_, joint_model_group_,&robot_state_);
 
   if(display)
@@ -1390,7 +1474,7 @@ void FMGPlanner::omplsetup()
 void FMGPlanner::run()
 {
 	init();
-	loadObs("/home/azalea-linux/ws_moveit/src/planning_test/src/obs.scene",true);
+	loadObs("/home/azalea-linux/moveit_v2/src/planning_test/src/obs.scene",true);
 	addObstoScene();
 	//return;	//GenerateGaps();
 	std::cout<<" the planning choice is " << choice << std::endl;
@@ -1408,7 +1492,11 @@ void FMGPlanner::run()
 	}
 	else if(this->choice == 3)
 	{
-		this->findCartesianPath();
+		ros::Duration time;
+		double len;
+		
+		omplsetup();
+		this->benchmarkOMPL_PRM(time, len, true,"10");
 	}
 	else if(this->choice == 4)
 	{
@@ -1458,17 +1546,53 @@ void FMGPlanner::rrt_vs_fmg(int num)
 	//loadObs("/home/azalea-linux/ws_moveit/src/planning_test/src/obs.scene",true);
 	//addObstoScene();
 
-	std::string filename = "/home/azalea-linux/ws_moveit/src/planning_test/src/result/result.log";
+	std::string filename = "/home/azalea-linux/moveit_v2/src/planning_test/src/result/result.log";
 	std::ofstream myfile;
 	myfile.open(filename,std::ios_base::app);
-	int testompl, testfmg;
+	int testompl, testfmg,testprm;
 	node_handle_.getParam("testompl",testompl);
 	node_handle_.getParam("testfmg",testfmg);
+	node_handle_.getParam("testprm",testprm);
 	std::cout << testompl << testfmg<<std::endl;
+	if(testprm || testompl) omplsetup();
 
+	if(testprm)
+	{
+		
+		int failnum_prm = 0;
+		double len,totallen_prm=0;
+		ros::Duration time;
+
+		//std::string ranges[] = {"01","03","05","08","10"};
+		//for(auto range:ranges)
+		//{
+			ros::Duration sucprm_totaltime(0.0);
+	
+		totallen_prm = 0;
+		//sucrrt_totaltime = 0;
+		failnum_prm = 0;
+		for(int i =0; i<num; i++)
+		{
+			if(benchmarkOMPL_PRM(time,len,false,""))
+			{
+				sucprm_totaltime += time;
+				totallen_prm += len;
+			}
+			else
+			{
+				failnum_prm++;
+			}
+		}
+		int sucnum_prm = num-failnum_prm;
+		myfile << "run times: "<< num <<"; ";
+		myfile <<"lazyprm succed "<<double(sucnum_prm)/num<<" percent, average time: "<<sucprm_totaltime.toSec()/sucnum_prm;
+		myfile <<", average length: " << totallen_prm/sucnum_prm << std::endl;
+
+	}
+	//}
   	if(testompl){
 	//ompl RRT
-	omplsetup();
+	
 	int failnum_rrt = 0;
 	double len,totallen_rrt=0;
 	ros::Duration time, sucrrt_totaltime(0.0);
